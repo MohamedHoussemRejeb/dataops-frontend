@@ -21,11 +21,13 @@ import {
   provideHttpClient,
   withInterceptorsFromDi,
   withFetch,
+  withInterceptors,
   HTTP_INTERCEPTORS,
 } from '@angular/common/http';
 
-// ✅ Interceptor perso
-import { AuthInterceptor } from './core/auth.interceptor';
+// ✅ Interceptors
+import { AuthInterceptor } from './core/auth.interceptor';           // class-based
+import { authTokenInterceptor } from './core/auth-token.interceptor'; // functional
 
 // ✅ Keycloak
 import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
@@ -56,13 +58,18 @@ export const appConfig: ApplicationConfig = {
     provideNativeDateAdapter(),
     { provide: MAT_DATE_LOCALE, useValue: 'fr-FR' },
 
-    // --- HTTP: client + Fetch + interceptors DI ---
+    // --- HTTP: client + Fetch + interceptors ---
     provideHttpClient(
+      // ✅ Functional interceptor: ajoute le Bearer token
+      withInterceptors([authTokenInterceptor]),
+
+      // ✅ Pour continuer à utiliser les interceptors DI (AuthInterceptor)
       withInterceptorsFromDi(),
-      withFetch(),
+
+      withFetch()
     ),
 
-    // 🔐 Intercepteur pour ajouter le Bearer token sur les appels API
+    // 🔐 Intercepteur class-based (par ex. pour 401 / redirection)
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
