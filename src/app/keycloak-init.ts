@@ -6,9 +6,9 @@ export function initializeKeycloak(keycloak: KeycloakService) {
   return () =>
     keycloak.init({
       config: {
-        url: environment.keycloakBaseUrl,   // ⬅️ plus de 'http://localhost:8181' en dur
+        url: 'https://keycloak01-cyepgyeje2hadygd.canadacentral-01.azurewebsites.net',  
         realm: 'dataops',
-        clientId: environment.keycloakClientId,
+        clientId: 'dataops-angular',
       },
       initOptions: {
         onLoad: 'check-sso',
