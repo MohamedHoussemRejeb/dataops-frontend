@@ -19,10 +19,32 @@
 .sidebar-brand-narrow {
   max-height: 30px;
 }
+/* === Increase sidebar width === */
+.sidebar {
+  width: 300px !important;     /* 🔥 change à 270, 280, 300 selon ton goût */
+}
+
+.sidebar.sidebar-fixed {
+  width: 265px !important;
+}
   //.sidebar-nav {
   //  scrollbar-color: var(--cui-gray-500, #444) transparent;
   //}
 }
+/* Centrer le logo horizontalement dans toute la sidebar */
+.sidebar-brand {
+  width: 100% !important;                /* prend toute la largeur */
+  display: flex !important;
+  justify-content: center !important;    /* centre gauche ↔ droite */
+  align-items: center !important;        /* centre haut ↔ bas */
+  text-align: center !important;
+}
+
+/* Pour éviter que les deux logos s’affichent ensemble */
+.sidebar-brand-narrow {
+  display: none;
+}
+
 
 // ng-scrollbar css variables
 //.cui-scrollbar {

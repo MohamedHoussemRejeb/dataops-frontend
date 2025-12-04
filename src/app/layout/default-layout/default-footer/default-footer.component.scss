@@ -1,0 +1,29 @@
+.app-footer-light {
+  width: 100%;
+  padding: 0.8rem 1.4rem;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  background: #ffffff;             // 🎨 fond clair
+  color: #374151;                  // gris foncé lisible
+  font-size: 0.9rem;
+
+  border-top: 1px solid #e5e7eb;   // fine séparation élégante
+
+  .brand {
+    font-weight: 600;
+    color: #2563eb;                // bleu Talys (clair)
+  }
+
+  a {
+    color: #2563eb;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+      color: #1d4ed8;
+    }
+  }
+}
