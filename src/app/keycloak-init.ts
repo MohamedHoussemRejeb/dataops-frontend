@@ -6,7 +6,7 @@ export function initializeKeycloak(keycloak: KeycloakService) {
   return () =>
     keycloak.init({
       config: {
-        url: 'https://keycloak01-cyepgyeje2hadygd.canadacentral-01.azurewebsites.net',  
+        url: environment.keycloakBaseUrl,  
         realm: 'dataops',
         clientId: 'dataops-angular',
       },
