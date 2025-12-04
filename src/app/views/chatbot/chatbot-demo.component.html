@@ -1,0 +1,152 @@
+<div class="chatbot-shell card">
+  <!-- Header -->
+  <div class="chatbot-header d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+<div class="bot-avatar">
+  <img src="assets/images/logo-house.png" alt="Logo" />
+</div>
+      <div>
+        <div class="title">Assistant DataOps</div>
+        <div class="subtitle">
+          <span class="status-dot"></span>
+          Connecté à l’API du PFE
+        </div>
+      </div>
+    </div>
+
+    <div class="badge-version">
+      v1.0 · Digital Expert AI
+    </div>
+  </div>
+
+  <!-- Corps -->
+  <div class="chatbot-body">
+    <!-- Fenêtre de chat -->
+    <div class="chat-window custom-scrollbar">
+      <!-- Message système de bienvenue -->
+      <div class="msg-row">
+        <div class="msg msg-bot">
+          <div class="msg-meta">Assistant · système</div>
+          <div class="msg-text">
+            Bonjour 👋  
+            Je suis ton copilote DataOps.  
+            Pose-moi des questions sur tes jobs Talend, ton catalogue, la qualité des données ou l’état global de ta plateforme.
+          </div>
+        </div>
+      </div>
+
+      <!-- Dernière question (user) -->
+      <div class="msg-row msg-row-user" *ngIf="prompt.trim()">
+        <div class="msg msg-user">
+          <div class="msg-meta">Toi</div>
+          <div class="msg-text">
+            {{ prompt }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Réponse -->
+      <div class="msg-row" *ngIf="response">
+        <div class="msg msg-bot">
+          <div class="msg-meta">Assistant</div>
+          <div class="msg-text">
+            {{ response }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Typing / chargement -->
+      <div class="msg-row" *ngIf="loading">
+        <div class="msg msg-bot typing">
+          <div class="msg-meta">Assistant</div>
+          <div class="typing-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="chat-sidebar">
+      <div class="sidebar-section">
+        <h6>Questions rapides</h6>
+
+        <button
+          type="button"
+          class="pill"
+          (click)="useSuggestion('Donne-moi un résumé de l’état de la plateforme DataOps aujourd’hui.')">
+          Résumé de la plateforme
+        </button>
+
+        <button
+          type="button"
+          class="pill"
+          (click)="useSuggestion('Quels jobs Talend ont échoué dans les dernières 24 heures ?')">
+          Jobs en erreur (24h)
+        </button>
+
+        <button
+          type="button"
+          class="pill"
+          (click)="useSuggestion('Explique-moi le lineage complet du dataset SALES_DWH_ORDERS.')">
+          Lineage d’un dataset
+        </button>
+
+        <button
+          type="button"
+          class="pill"
+          (click)="useSuggestion('Quels datasets ont une sensibilité élevée et un niveau de risque élevé ?')">
+          Risque & sensibilité
+        </button>
+
+        <button
+          type="button"
+          class="pill"
+          (click)="useSuggestion('Quels jobs ont dépassé leur SLA cette semaine ?')">
+          Jobs hors SLA
+        </button>
+      </div>
+
+<div class="sidebar-section small">
+  <img src="assets/images/house-digital-experts.png"
+       alt="The House of Digital Experts"
+       class="house-banner"/>
+</div>
+    </div>
+  </div>
+
+  <!-- Zone d’entrée -->
+  <div class="chat-input">
+    <div class="input-wrapper">
+      <textarea
+        [(ngModel)]="prompt"
+        name="prompt"
+        rows="2"
+        class="form-control chat-textarea"
+        [disabled]="loading"
+        placeholder="Pose ta question DataOps… (ex : Quels datasets ont le plus d’erreurs de qualité ?)"></textarea>
+
+      <div class="input-actions">
+        <button
+          type="button"
+          class="btn btn-primary send-btn"
+          (click)="send()"
+          [disabled]="loading || !prompt.trim()">
+
+          <ng-container *ngIf="!loading; else loadingTpl">
+            Envoyer
+          </ng-container>
+
+          <ng-template #loadingTpl>
+            <span class="spinner-border spinner-border-sm" role="status"></span>
+            <span class="ms-1">Analyse…</span>
+          </ng-template>
+        </button>
+      </div>
+    </div>
+
+    <div class="helper-text">
+      Les réponses peuvent inclure des métriques (SLA, volumétrie, qualité) calculées par ta plateforme DataOps.
+    </div>
+  </div>
+</div>

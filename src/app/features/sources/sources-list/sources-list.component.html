@@ -1,0 +1,169 @@
+<div class="sources-page">
+
+  <!-- Header -->
+  <div class="sources-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="title mb-1">Logiciels & Sources</h4>
+      <p class="subtitle">Catalogue unifié de toutes tes sources : SaaS, Bases, APIs, fichiers…</p>
+    </div>
+
+    <div class="actions d-flex gap-2 align-items-center">
+
+      <!-- Recharger -->
+      <button class="btn btn-ghost"
+              (click)="reload()"
+              [disabled]="loading() || testingAll() || importing()">
+        ↻ Recharger
+      </button>
+
+      <!-- Tester toutes -->
+      <button class="btn btn-primary"
+              (click)="testAll()"
+              [disabled]="loading() || testingAll() || importing()">
+        ⚙️ Tester toutes les connexions
+      </button>
+
+      <!-- Import -->
+      <div class="import-wrapper position-relative">
+        <input type="file"
+               id="contextFileInput"
+               class="file-input"
+               (change)="importContext($event)"
+               [disabled]="loading() || testingAll() || importing()" />
+
+        <label for="contextFileInput"
+               class="btn btn-success mb-0">
+          📁 Contexte
+        </label>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="filters row g-2 mb-4">
+    <div class="col-12 col-md-6">
+      <input class="form-control search-input"
+             placeholder="Rechercher une source…"
+             [ngModel]="q()"
+             (ngModelChange)="q.set($event)" />
+    </div>
+
+    <div class="col-6 col-md-3">
+      <select class="form-select select-input"
+              [ngModel]="kind()"
+              (ngModelChange)="kind.set($event)">
+        <option value="">Tous types</option>
+        <option value="saas">SaaS</option>
+        <option value="db">Base de données</option>
+        <option value="file">Fichier / FTP</option>
+        <option value="api">API</option>
+      </select>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <button class="btn btn-ghost w-100"
+              (click)="q.set(''); kind.set('')">
+        Réinitialiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <app-state-block
+    *ngIf="!loading() && error()"
+    icon="⚠️"
+    title="Erreur"
+    [message]="error() ?? ''"
+    actionLabel="Réessayer"
+    [action]="reload">
+  </app-state-block>
+
+  <!-- Empty -->
+  <app-state-block
+    *ngIf="!loading() && !error() && !hasData()"
+    icon="🗂️"
+    title="Aucune source">
+  </app-state-block>
+
+  <!-- Loader -->
+  <div *ngIf="loading()" class="loader-zone text-center py-5">
+    <div class="loader"></div>
+    <p class="text-muted small mt-2">Chargement des sources…</p>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrapper" *ngIf="!loading() && !error() && hasData()">
+    <table class="table sources-table align-middle">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Éditeur</th>
+          <th>Type</th>
+          <th>Licence</th>
+          <th>Owner</th>
+          <th>Tags</th>
+          <th>Statut</th>
+          <th>Dernière réussite</th>
+          <th>Latence</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let s of filtered(); trackBy: trackByName">
+
+          <td>
+            <div class="fw-semibold">{{ s.name }}</div>
+            <div class="meta" *ngIf="s['connectionUrl']">{{ s['connectionUrl'] }}</div>
+            <div class="meta" *ngIf="s.lastMessage">{{ s.lastMessage }}</div>
+          </td>
+
+          <td>{{ s.vendor || '—' }}</td>
+          <td>{{ s.type || '—' }}</td>
+          <td>{{ s.licence || '—' }}</td>
+          <td>{{ s.owner || '—' }}</td>
+          <td>{{ (s.tags || []).join(' | ') || '—' }}</td>
+
+          <!-- Status -->
+          <td>
+            <span class="status-pill"
+                  [ngClass]="{
+                    'online': s.status === 'ONLINE',
+                    'offline': s.status === 'OFFLINE',
+                    'unknown': s.status !== 'ONLINE' && s.status !== 'OFFLINE'
+                  }">
+              <span class="dot"></span>
+              <span>
+                {{ s.status === 'ONLINE' ? 'En ligne' :
+                   s.status === 'OFFLINE' ? 'Hors ligne' : 'Inconnu' }}
+              </span>
+            </span>
+          </td>
+
+          <!-- Last Success -->
+          <td class="small text-muted">
+            <ng-container *ngIf="s.lastSuccessAt; else neverTpl">
+              {{ timeAgo(s.lastSuccessAt) }}
+            </ng-container>
+            <ng-template #neverTpl>Jamais</ng-template>
+          </td>
+
+          <!-- Latency -->
+          <td class="small">{{ s.lastLatencyMs != null ? s.lastLatencyMs + ' ms' : '—' }}</td>
+
+          <!-- Tester -->
+          <td class="text-end">
+            <button class="btn btn-primary btn-sm btn-test"
+                    (click)="testOne(s)"
+                    [disabled]="testingAll() || testingId() === s.id || importing()">
+              <span *ngIf="testingId() === s.id">Test…</span>
+              <span *ngIf="testingId() !== s.id">Tester</span>
+            </button>
+          </td>
+
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

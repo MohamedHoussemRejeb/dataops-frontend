@@ -1,0 +1,136 @@
+<div class="lineage-page">
+  <!-- 🧭 HERO -->
+  <header class="lineage-hero">
+    <div class="lineage-hero__titles">
+      <div class="lineage-hero__chip">Lineage</div>
+      <h1 class="lineage-hero__title">Data lineage</h1>
+      <p class="lineage-hero__subtitle">
+        Vue globale des flux entre sources, staging et data warehouse. Survole un nœud pour
+        mettre en évidence son chemin.
+      </p>
+    </div>
+
+    <div class="lineage-hero__controls">
+      <label class="toggle">
+        <input
+          type="checkbox"
+          [checked]="showIds()"
+          (change)="showIds.set($any($event.target).checked)"
+        />
+        <span>Afficher les IDs</span>
+      </label>
+
+      <select
+        class="select"
+        [ngModel]="filterLayer()"
+        (ngModelChange)="filterLayer.set($event)"
+      >
+        <option value="all">Toutes couches</option>
+        <option value="source">Sources</option>
+        <option value="staging">Staging</option>
+        <option value="dw">Data Warehouse</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- 🧱 CARD GRAPHE -->
+  <section class="lineage-card">
+    <!-- États de chargement / erreur -->
+    <div *ngIf="loading()" class="state state--loading">
+      <div class="state__spinner"></div>
+      <div class="state__text">Chargement du graphe…</div>
+    </div>
+
+    <div *ngIf="error()" class="state state--error">
+      {{ error() }}
+    </div>
+
+    <!-- Graphe SVG -->
+    <div class="canvas" *ngIf="!loading() && !error()">
+      <svg [attr.viewBox]="viewBox" preserveAspectRatio="xMidYMid meet">
+        <!-- Flèches -->
+        <defs>
+          <marker
+            id="arrow"
+            viewBox="0 0 10 10"
+            refX="10"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z"></path>
+          </marker>
+        </defs>
+
+        <!-- Colonnes -->
+        <g class="columns">
+          <text class="col-title" x="16" y="24">Sources</text>
+          <text class="col-title" x="316" y="24">Staging</text>
+          <text class="col-title" x="616" y="24">DW</text>
+          <line class="col-sep" x1="300" y1="0" x2="300" y2="1000"></line>
+          <line class="col-sep" x1="600" y1="0" x2="600" y2="1000"></line>
+        </g>
+
+        <!-- Arêtes -->
+        <g class="edges">
+          <ng-container *ngFor="let e of visibleEdges()">
+            <line
+              [attr.x1]="pos(e.from).x"
+              [attr.y1]="pos(e.from).y"
+              [attr.x2]="pos(e.to).x"
+              [attr.y2]="pos(e.to).y"
+              marker-end="url(#arrow)"
+              [class.dimmed]="isDimmed(e)"
+            />
+          </ng-container>
+        </g>
+
+        <!-- Nœuds -->
+        <g class="nodes">
+          <ng-container *ngFor="let n of visibleNodes()">
+            <g
+              class="node"
+              [class.active]="isActive(n.id)"
+              [attr.transform]="
+                'translate(' + (pos(n.id).x - nodeW / 2) + ',' + (pos(n.id).y - nodeH / 2) + ')'
+              "
+              (mouseenter)="hover.set(n.id)"
+              (mouseleave)="hover.set(null)"
+            >
+              <rect rx="12" ry="12" [attr.width]="nodeW" [attr.height]="nodeH"></rect>
+              <text class="label" [attr.x]="12" [attr.y]="22">{{ n.label }}</text>
+              <text class="meta" [attr.x]="12" [attr.y]="38" *ngIf="n.owner">
+                {{ n.owner }}
+              </text>
+              <text class="id" [attr.x]="12" [attr.y]="54" *ngIf="showIds()">
+                {{ n.id }}
+              </text>
+            </g>
+          </ng-container>
+        </g>
+      </svg>
+
+      <div *ngIf="visibleNodes().length === 0" class="state state--empty">
+        <div class="state__icon">🔍</div>
+        <div class="state__text">Aucun nœud à afficher.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Légende -->
+  <footer class="legend">
+    <span class="legend-dot legend-dot--s"></span>
+    <span>Source</span>
+
+    <span class="legend-dot legend-dot--t"></span>
+    <span>Staging</span>
+
+    <span class="legend-dot legend-dot--w"></span>
+    <span>DW</span>
+
+    <span class="legend-hint">
+      • Survoler un nœud pour mettre en évidence son chemin.
+    </span>
+  </footer>
+</div>

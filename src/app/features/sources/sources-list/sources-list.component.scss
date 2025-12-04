@@ -1,0 +1,244 @@
+// Palette
+$brand-dark: #212631;
+$brand-dark-2: #171b24;
+$accent: #6366f1;
+$success: #22c55e;
+$error: #ef4444;
+$neutral-border: rgba(15, 23, 42, 0.08);
+
+.sources-page {
+  padding: 24px 0 32px;
+}
+
+/* -------- HEADER BAND (uses #212631) -------- */
+.sources-header {
+  border-radius: 16px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, $brand-dark, $brand-dark-2);
+  color: #f9fafb;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+  margin-bottom: 18px;
+
+  .title {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    margin: 0;
+  }
+
+  .actions .btn {
+    padding: 6px 14px;
+    border-radius: 8px !important;
+    transition: 0.15s ease;
+    font-size: 0.8rem;
+    backdrop-filter: blur(4px);
+    white-space: nowrap;
+
+    &.btn-primary {
+      background: $accent;
+      border: none;
+      color: #fff;
+
+      &:hover:not(:disabled) {
+        background: lighten($accent, 8%);
+        transform: translateY(-1px);
+      }
+    }
+
+    &.btn-success {
+      background: $success;
+      border: none;
+      color: #052e16;
+
+      &:hover:not(:disabled) {
+        background: lighten($success, 6%);
+        transform: translateY(-1px);
+      }
+    }
+
+    &.btn-ghost {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #e5e7eb;
+
+      &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.1);
+      }
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+      transform: none;
+    }
+  }
+
+  .file-input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+}
+
+/* -------- FILTERS (light card) -------- */
+.filters {
+  margin-bottom: 16px;
+
+  .search-input,
+  .select-input {
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid $neutral-border;
+    font-size: 0.9rem;
+
+    &:focus {
+      border-color: $accent;
+      box-shadow: 0 0 0 2px rgba($accent, 0.18);
+    }
+
+    &::placeholder {
+      color: #9ca3af;
+    }
+  }
+
+  .btn-ghost.w-100 {
+    border-radius: 10px;
+    border: 1px dashed $neutral-border;
+    background: #ffffff;
+    font-size: 0.85rem;
+
+    &:hover {
+      background: #f9fafb;
+    }
+  }
+}
+
+/* -------- LOADER -------- */
+.loader-zone {
+  .loader {
+    border: 4px solid rgba(148, 163, 184, 0.3);
+    border-left-color: $accent;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-inline: auto;
+  }
+
+  .text-muted {
+    font-size: 0.8rem;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* -------- TABLE WRAPPER (light card) -------- */
+.table-wrapper {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid $neutral-border;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  padding: 10px 12px;
+}
+
+/* -------- TABLE -------- */
+.sources-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: #111827;
+
+  thead {
+    background: #f9fafb;
+
+    th {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      border-bottom: 1px solid $neutral-border;
+      padding-top: 8px;
+      padding-bottom: 8px;
+      white-space: nowrap;
+    }
+  }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(229, 231, 235, 0.9);
+    transition: 0.12s ease;
+
+    &:hover {
+      background: #f9fafb;
+      transform: translateX(2px);
+    }
+  }
+
+  td {
+    font-size: 0.86rem;
+    vertical-align: middle;
+  }
+
+  .meta {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+}
+
+/* -------- STATUS PILL -------- */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  &.online {
+    background: rgba($success, 0.12);
+    color: #166534;
+
+    .dot {
+      background: $success;
+    }
+  }
+
+  &.offline {
+    background: rgba($error, 0.12);
+    color: #b91c1c;
+
+    .dot {
+      background: $error;
+    }
+  }
+
+  &.unknown {
+    background: rgba(148, 163, 184, 0.16);
+    color: #4b5563;
+
+    .dot {
+      background: #9ca3af;
+    }
+  }
+}
+
+/* -------- TEST BUTTON -------- */
+.btn-test {
+  font-size: 0.78rem;
+  padding-inline: 12px;
+}

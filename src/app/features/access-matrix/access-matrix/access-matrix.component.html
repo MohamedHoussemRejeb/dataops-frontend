@@ -1,0 +1,345 @@
+<!-- src/app/features/governance/access-matrix/access-matrix.component.html -->
+
+<section class="am-page container-fluid py-3">
+
+  <!-- 🎩 HERO SOMBRE -->
+  <header class="am-hero">
+    <div class="am-hero__left">
+      <div class="am-hero__chip">Governance · Access</div>
+      <h2 class="am-hero__title">Access Matrix</h2>
+      <p class="am-hero__subtitle">
+        Vue consolidée des droits d'accès entre utilisateurs, rôles et datasets.
+      </p>
+    </div>
+
+    <div class="am-hero__right">
+      <span class="am-pill am-pill--count">
+        {{ total() }} résultat(s)
+      </span>
+
+      <span
+        class="am-pill am-pill--rt"
+        [class.am-pill--rt-on]="realtime.autoRefresh()"
+      >
+        <span class="dot"></span>
+        Temps réel — {{ realtime.autoRefresh() ? 'activé' : 'désactivé' }}
+      </span>
+
+      <button
+        mat-stroked-button
+        color="primary"
+        class="am-btn-rebuild"
+        (click)="onRebuildClick()"
+        [disabled]="rebuildLoading()"
+      >
+        <span *ngIf="rebuildLoading(); else rebuildLabel">⟳</span>
+        <ng-template #rebuildLabel>Rebuild matrix</ng-template>
+      </button>
+    </div>
+  </header>
+
+  <!-- 🔍 FILTRES -->
+  <section class="am-filters">
+    <mat-form-field appearance="outline" class="am-filters__field am-filters__field--grow">
+      <mat-label>Recherche</mat-label>
+      <input
+        matInput
+        placeholder="nom, email, dataset..."
+        [value]="q()"
+        (input)="q.set(($any($event.target).value || '').trim())"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="am-filters__field">
+      <mat-label>Rôle</mat-label>
+      <mat-select [value]="role()" (selectionChange)="role.set($event.value)">
+        <mat-option value="any">(Tous)</mat-option>
+        <mat-option value="owner">Owner</mat-option>
+        <mat-option value="steward">Steward</mat-option>
+        <mat-option value="viewer">Viewer</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="am-filters__field">
+      <mat-label>Sensibilité</mat-label>
+      <mat-select
+        [value]="sensitivity()"
+        (selectionChange)="sensitivity.set($event.value)"
+      >
+        <mat-option value="any">(Toutes)</mat-option>
+        <mat-option *ngFor="let s of sensitivities" [value]="s">
+          {{ s }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="am-filters__field">
+      <mat-label>Légal</mat-label>
+      <mat-select [value]="legal()" (selectionChange)="legal.set($event.value)">
+        <mat-option value="any">(Tous)</mat-option>
+        <mat-option *ngFor="let l of legalTags" [value]="l">
+          {{ label(l) }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </section>
+
+  <!-- 💡 Hint -->
+  <div class="am-hint">
+    Utilisez les onglets pour pivoter entre
+    <strong>User → Datasets</strong> et
+    <strong>Dataset → Users</strong>.
+  </div>
+
+  <!-- 🧱 Tabs -->
+  <mat-tab-group class="am-tabs">
+
+    <!-- ========== ONGLET 1 : USER → DATASETS ========== -->
+    <mat-tab label="User → Datasets">
+      <ng-container *ngIf="!loading(); else loadingTpl">
+        <ng-container *ngIf="rows().length; else emptyTpl">
+          <div class="am-table-wrapper">
+            <table
+              mat-table
+              [dataSource]="byUser()"
+              class="am-table"
+              [trackBy]="trackRow"
+            >
+              <!-- Utilisateur -->
+              <ng-container matColumnDef="person">
+                <th mat-header-cell *matHeaderCellDef>Utilisateur</th>
+                <td mat-cell *matCellDef="let r">
+                  <div class="am-person">
+                    <div class="am-person__avatar">
+                      {{ avatarInitial(r) }}
+                    </div>
+                    <div class="am-person__info">
+                      <div class="am-person__name-row">
+                        <strong>{{ r.person.name }}</strong>
+                        <span class="pill pill-role">
+                          {{ r.person.role }}
+                        </span>
+                      </div>
+                      <a
+                        class="am-person__email"
+                        [href]="'mailto:' + r.person.email"
+                      >
+                        {{ r.person.email }}
+                      </a>
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Dataset -->
+              <ng-container matColumnDef="dataset">
+                <th mat-header-cell *matHeaderCellDef>Dataset</th>
+                <td
+                  mat-cell
+                  *matCellDef="let r"
+                  class="ds-cell"
+                  (click)="openDataset(r.dataset.urn)"
+                >
+                  <div class="am-dataset">
+                    <div class="am-dataset__title">
+                      <strong>{{ r.dataset.name }}</strong>
+                    </div>
+                    <div class="am-dataset__urn mono">
+                      {{ r.dataset.urn }}
+                    </div>
+                    <div class="am-dataset__tags">
+                      <span
+                        class="badge badge-sensitivity"
+                        *ngIf="r.dataset?.sensitivity"
+                      >
+                        {{ r.dataset.sensitivity }}
+                      </span>
+
+                      <span
+                        class="badge badge-legal"
+                        *ngFor="let l of (r.dataset?.legal || [])"
+                      >
+                        {{ label(l) }}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Accès -->
+              <ng-container matColumnDef="access">
+                <th mat-header-cell *matHeaderCellDef>Accès</th>
+                <td mat-cell *matCellDef="let r">
+                  <div class="am-access">
+                    <span
+                      class="access-pill"
+                      [ngClass]="accessClass(r.access)"
+                    >
+                      {{ r.access }}
+                    </span>
+                    <small class="am-access__inherited" *ngIf="r.inherited">
+                      (hérité)
+                    </small>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr
+                mat-header-row
+                *matHeaderRowDef="cols; sticky: true"
+              ></tr>
+              <tr
+                mat-row
+                *matRowDef="let row; columns: cols"
+              ></tr>
+            </table>
+          </div>
+
+          <mat-paginator
+            [length]="total()"
+            [pageIndex]="page() - 1"
+            [pageSize]="size()"
+            [pageSizeOptions]="[10, 25, 50, 100]"
+            (page)="onPage($event)"
+          >
+          </mat-paginator>
+        </ng-container>
+      </ng-container>
+    </mat-tab>
+
+    <!-- ========== ONGLET 2 : DATASET → USERS ========== -->
+    <mat-tab label="Dataset → Users">
+      <ng-container *ngIf="!loading(); else loadingTpl">
+        <ng-container *ngIf="rows().length; else emptyTpl">
+          <div class="am-table-wrapper">
+            <table
+              mat-table
+              [dataSource]="byDataset()"
+              class="am-table"
+              [trackBy]="trackRow"
+            >
+              <!-- Dataset -->
+              <ng-container matColumnDef="dataset">
+                <th mat-header-cell *matHeaderCellDef>Dataset</th>
+                <td
+                  mat-cell
+                  *matCellDef="let r"
+                  class="ds-cell"
+                  (click)="openDataset(r.dataset.urn)"
+                >
+                  <div class="am-dataset">
+                    <div class="am-dataset__title">
+                      <strong>{{ r.dataset.name }}</strong>
+                    </div>
+                    <div class="am-dataset__urn mono">
+                      {{ r.dataset.urn }}
+                    </div>
+                    <div class="am-dataset__tags">
+                      <span
+                        class="badge badge-sensitivity"
+                        *ngIf="r.dataset?.sensitivity"
+                      >
+                        {{ r.dataset.sensitivity }}
+                      </span>
+
+                      <span
+                        class="badge badge-legal"
+                        *ngFor="let l of (r.dataset?.legal || [])"
+                      >
+                        {{ label(l) }}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Utilisateur -->
+              <ng-container matColumnDef="person">
+                <th mat-header-cell *matHeaderCellDef>Utilisateur</th>
+                <td mat-cell *matCellDef="let r">
+                  <div class="am-person">
+                    <div class="am-person__avatar">
+                      {{ avatarInitial(r) }}
+                    </div>
+                    <div class="am-person__info">
+                      <div class="am-person__name-row">
+                        <strong>{{ r.person.name }}</strong>
+                        <span class="pill pill-role">
+                          {{ r.person.role }}
+                        </span>
+                      </div>
+                      <a
+                        class="am-person__email"
+                        [href]="'mailto:' + r.person.email"
+                      >
+                        {{ r.person.email }}
+                      </a>
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Accès -->
+              <ng-container matColumnDef="access">
+                <th mat-header-cell *matHeaderCellDef>Accès</th>
+                <td mat-cell *matCellDef="let r">
+                  <div class="am-access">
+                    <span
+                      class="access-pill"
+                      [ngClass]="accessClass(r.access)"
+                    >
+                      {{ r.access }}
+                    </span>
+                    <small class="am-access__inherited" *ngIf="r.inherited">
+                      (hérité)
+                    </small>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr
+                mat-header-row
+                *matHeaderRowDef="cols; sticky: true"
+              ></tr>
+              <tr
+                mat-row
+                *matRowDef="let row; columns: cols"
+              ></tr>
+            </table>
+          </div>
+
+          <mat-paginator
+            [length]="total()"
+            [pageIndex]="page() - 1"
+            [pageSize]="size()"
+            [pageSizeOptions]="[10, 25, 50, 100]"
+            (page)="onPage($event)"
+          >
+          </mat-paginator>
+        </ng-container>
+      </ng-container>
+    </mat-tab>
+
+  </mat-tab-group>
+
+  <!-- 🔄 Templates d’état -->
+  <ng-template #loadingTpl>
+    <div class="am-state am-state--loading">
+      <div class="am-state__spinner"></div>
+      <div class="am-state__text">Chargement de la matrice d’accès…</div>
+    </div>
+  </ng-template>
+
+  <ng-template #emptyTpl>
+    <div class="am-state am-state--empty">
+      <div class="am-state__icon">🔍</div>
+      <div class="am-state__text">
+        Aucun résultat pour ces filtres.
+      </div>
+      <div class="am-state__hint">
+        Essayez d’élargir la recherche (vider le texte ou remettre le
+        rôle &laquo;&nbsp;Tous&nbsp;&raquo;).
+      </div>
+    </div>
+  </ng-template>
+</section>

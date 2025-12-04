@@ -1,0 +1,255 @@
+<!-- src/app/features/settings/settings.component.html -->
+
+<div class="settings-page">
+
+  <!-- 🧭 HERO SOMBRE -->
+  <section class="settings-hero">
+    <div class="settings-hero__left">
+      <div class="settings-hero__chip">Settings · SLA</div>
+      <h2 class="settings-hero__title">Paramètres &amp; SLA</h2>
+      <p class="settings-hero__subtitle">
+        Ajuste l’apparence, les seuils d’alerte et les couleurs globales de ton cockpit DataOps.
+      </p>
+    </div>
+
+    <div class="settings-hero__right">
+      <div class="settings-hero__legend">
+        <span class="legend-item">
+          <span class="legend-dot" [style.background]="colors.OK"></span>
+          <span>OK</span>
+        </span>
+        <span class="legend-item">
+          <span class="legend-dot" [style.background]="colors.RUNNING"></span>
+          <span>RUNNING</span>
+        </span>
+        <span class="legend-item">
+          <span class="legend-dot" [style.background]="colors.LATE"></span>
+          <span>LATE</span>
+        </span>
+        <span class="legend-item">
+          <span class="legend-dot" [style.background]="colors.FAILED"></span>
+          <span>FAILED</span>
+        </span>
+        <span class="legend-item">
+          <span class="legend-dot" [style.background]="colors.UNKNOWN"></span>
+          <span>UNKNOWN</span>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 🧰 FORM GLOBAL -->
+  <form class="settings-form" [formGroup]="form" (ngSubmit)="save()">
+
+    <!-- 🔹 Apparence -->
+    <section class="settings-card settings-card--appearance">
+      <div class="settings-card__header">
+        <h2>Apparence</h2>
+        <p>Contrôle le thème global de l’interface.</p>
+      </div>
+
+      <label class="field-toggle">
+        <input type="checkbox" formControlName="darkMode" />
+        <span class="field-toggle__label">
+          Activer le mode sombre
+          <small>Le thème est appliqué immédiatement sur l’application.</small>
+        </span>
+      </label>
+    </section>
+
+    <!-- 🔹 Grid 2 colonnes -->
+    <div class="settings-grid">
+      <!-- SEUILS D’ALERTE -->
+      <section class="settings-card settings-card--thresholds">
+        <div class="settings-card__header">
+          <h2>Seuils d’alerte</h2>
+          <p>Durées, erreurs, freshness et null rate utilisés pour les badges &amp; statuts.</p>
+        </div>
+
+        <!-- Durée des runs -->
+        <div class="field-group">
+          <div class="field-group__header">
+            <h3>Durée des runs</h3>
+            <p>Temps au-delà duquel un run est considéré comme anormal.</p>
+          </div>
+
+          <div class="field-row">
+            <div class="field-label">
+              Durée max d’un run
+              <small>(en minutes)</small>
+            </div>
+            <div class="field-control">
+              <input
+                type="number"
+                min="1"
+                max="1440"
+                formControlName="maxDurationMin"
+                [class.field-control__input--invalid]="ctrl('maxDurationMin').invalid && form.touched"
+              />
+              <span class="field-unit">min</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Erreurs (%) -->
+        <div class="field-group">
+          <div class="field-group__header">
+            <h3>Erreurs (%)</h3>
+            <p>Pourcentage maximal de lignes en erreur avant changement de statut.</p>
+          </div>
+
+          <div class="field-row">
+            <div class="field-label">% erreurs (warning)</div>
+            <div class="field-control">
+              <input type="number" min="0" max="100" formControlName="errorRateWarn" />
+              <span class="field-unit">%</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field-label">% erreurs (critique)</div>
+            <div class="field-control">
+              <input type="number" min="0" max="100" formControlName="errorRateCrit" />
+              <span class="field-unit">%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Freshness -->
+        <div class="field-group">
+          <div class="field-group__header">
+            <h3>Freshness (âge des données)</h3>
+            <p>Ancienneté des données acceptée avant de déclencher des alertes.</p>
+          </div>
+
+          <div class="field-row">
+            <div class="field-label">OK si &le;</div>
+            <div class="field-control">
+              <input type="number" min="0" max="10080" formControlName="freshnessOkMin" />
+              <span class="field-unit">min</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field-label">WARN si &le;</div>
+            <div class="field-control">
+              <input type="number" min="0" max="10080" formControlName="freshnessWarnMin" />
+              <span class="field-unit">min</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Null rate -->
+        <div class="field-group">
+          <div class="field-group__header">
+            <h3>Null rate (%)</h3>
+            <p>Taux de valeurs nulles toléré avant changement de statut.</p>
+          </div>
+
+          <div class="field-row">
+            <div class="field-label">WARN si ≥</div>
+            <div class="field-control">
+              <input type="number" min="0" max="100" formControlName="nullWarnPct" />
+              <span class="field-unit">%</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field-label">CRIT si ≥</div>
+            <div class="field-control">
+              <input type="number" min="0" max="100" formControlName="nullCritPct" />
+              <span class="field-unit">%</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="settings-hint">
+          Rappel : <strong>warning &lt; critique</strong>. Ces seuils pilotent uniquement le rendu local
+          (badges, couleurs, légende) sans nouvelle requête serveur.
+        </p>
+      </section>
+
+      <!-- COULEURS DES STATUTS -->
+      <section class="settings-card settings-card--colors">
+        <div class="settings-card__header">
+          <h2>Couleurs des statuts</h2>
+          <p>Palette utilisée pour tous les états de runs et de qualité.</p>
+        </div>
+
+        <div class="color-grid" [formGroup]="colorGroup">
+          <label class="color-field">
+            <span class="color-field__label">OK</span>
+            <input type="color" formControlName="OK" />
+          </label>
+
+          <label class="color-field">
+            <span class="color-field__label">RUNNING</span>
+            <input type="color" formControlName="RUNNING" />
+          </label>
+
+          <label class="color-field">
+            <span class="color-field__label">LATE</span>
+            <input type="color" formControlName="LATE" />
+          </label>
+
+          <label class="color-field">
+            <span class="color-field__label">FAILED</span>
+            <input type="color" formControlName="FAILED" />
+          </label>
+
+          <label class="color-field">
+            <span class="color-field__label">UNKNOWN</span>
+            <input type="color" formControlName="UNKNOWN" />
+          </label>
+        </div>
+
+        <div class="status-preview">
+          <span class="status-pill" [style.background]="colors.OK">OK</span>
+          <span class="status-pill" [style.background]="colors.RUNNING">RUNNING</span>
+          <span class="status-pill" [style.background]="colors.LATE">LATE</span>
+          <span class="status-pill" [style.background]="colors.FAILED">FAILED</span>
+          <span class="status-pill" [style.background]="colors.UNKNOWN">UNKNOWN</span>
+        </div>
+      </section>
+
+      <!-- SLA JSON PREVIEW -->
+      <section class="settings-card settings-card--json">
+        <div class="settings-card__header">
+          <h2>Prévisualisation SLA globale (JSON)</h2>
+          <p>
+            Vue synthétique de la configuration globale dérivée de ces paramètres, proche de ton modèle
+            <code>SlaConfig</code>.
+          </p>
+        </div>
+
+        <pre class="json-preview">
+{{ slaPreview | json }}
+        </pre>
+
+        <p class="settings-hint">
+          Utilisable dans la documentation ou les scripts d’initialisation pour montrer comment les SLA globaux
+          alimentent les SLA par dataset.
+        </p>
+      </section>
+    </div>
+
+    <!-- ACTIONS -->
+    <footer class="settings-actions">
+      <button
+        type="button"
+        class="btn btn--secondary"
+        (click)="reset()"
+      >
+        Réinitialiser
+      </button>
+
+      <button
+        type="submit"
+        class="btn btn--primary"
+        [disabled]="form.invalid"
+      >
+        Enregistrer
+      </button>
+    </footer>
+  </form>
+</div>

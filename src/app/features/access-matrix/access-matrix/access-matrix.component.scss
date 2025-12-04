@@ -1,0 +1,401 @@
+/* =============== PAGE ROOT =============== */
+.am-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-inline: 0;
+}
+
+/* =============== HERO SOMBRE (rgb(33,38,49)) =============== */
+.am-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 20px 22px;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    #212631 0%,      /* couleur demandée */
+    #1e293b 45%,
+    #020617 100%
+  );
+  color: #f9fafb;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+}
+
+.am-hero__left {
+  max-width: 60%;
+}
+
+.am-hero__chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.am-hero__title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.am-hero__subtitle {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: rgba(249, 250, 251, 0.8);
+}
+
+.am-hero__right {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.am-btn-rebuild {
+  font-size: 0.78rem;
+  padding-inline: 10px;
+}
+
+/* =============== PILLS HERO =============== */
+.am-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.am-pill--count {
+  background: #f9fafb;
+  border-color: #e5e7eb;
+  color: #111827;
+}
+
+.am-pill--rt {
+  background: #fef3c7;
+  border-color: #fde68a;
+  color: #92400e;
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: #f59e0b;
+  }
+}
+
+.am-pill--rt-on {
+  background: #ecfdf5 !important;
+  border-color: #bbf7d0 !important;
+  color: #065f46 !important;
+
+  .dot {
+    background: #10b981 !important;
+  }
+}
+
+/* =============== FILTRES =============== */
+.am-filters {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.am-filters__field {
+  min-width: 180px;
+}
+
+.am-filters__field--grow {
+  flex: 1 1 260px;
+}
+
+/* =============== HINT =============== */
+.am-hint {
+  font-size: 0.82rem;
+  color: #6b7280;
+  padding-inline: 2px;
+}
+
+/* =============== TABS + TABLE WRAPPER =============== */
+.am-tabs {
+  .mat-mdc-tab-body-content {
+    padding-top: 8px;
+  }
+}
+
+.am-table-wrapper {
+  width: 100%;
+  overflow: auto;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+/* =============== TABLE =============== */
+.am-table {
+  width: 100%;
+}
+
+/* Header */
+.am-table .mat-mdc-header-row {
+  background: #f3f4f6;
+  text-transform: uppercase;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+}
+
+.am-table .mat-mdc-header-cell {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.7);
+  padding: 8px 12px;
+  color: #4b5563;
+}
+
+/* Rows */
+.am-table .mat-mdc-row {
+  transition: background-color 130ms ease;
+}
+
+.am-table .mat-mdc-row:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+.am-table .mat-mdc-row:hover {
+  background-color: #e5edff;
+}
+
+/* Cells */
+.am-table .mat-mdc-cell {
+  padding: 10px 12px;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.9);
+}
+
+/* =============== PERSON CELL =============== */
+.am-person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.am-person__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: #e0e7ff;
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.am-person__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.am-person__name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  strong {
+    font-size: 0.92rem;
+  }
+}
+
+.am-person__email {
+  font-size: 0.78rem;
+  color: #2563eb;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* =============== DATASET CELL =============== */
+.ds-cell {
+  cursor: pointer;
+}
+
+.ds-cell:hover .am-dataset__title strong {
+  text-decoration: underline;
+  color: #2740c6;
+}
+
+.am-dataset {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.am-dataset__title {
+  font-size: 0.92rem;
+  color: #111827;
+}
+
+.am-dataset__urn {
+  font-size: 0.76rem;
+  opacity: 0.75;
+}
+
+.am-dataset__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.badge-sensitivity {
+  background: #0f172a;
+  color: #fefce8;
+}
+
+.badge-legal {
+  background: #e0f2fe;
+  color: #075985;
+}
+
+/* =============== ACCESS PILL =============== */
+.am-access {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.access-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.access-owner {
+  background: #064e3b;
+  color: #ecfdf5;
+}
+
+.access-admin {
+  background: #111827;
+  color: #f9fafb;
+}
+
+.access-steward {
+  background: #f97316;
+  color: #111827;
+  border-color: rgba(124, 45, 18, 0.2);
+}
+
+.access-viewer {
+  background: #eef2ff;
+  color: #3730a3;
+  border-color: rgba(79, 70, 229, 0.3);
+}
+
+.am-access__inherited {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* =============== STATES (loading / empty) =============== */
+.am-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 28px 10px;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.am-state--loading .am-state__spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid rgba(156, 163, 175, 0.4);
+  border-top-color: #4f46e5;
+  animation: am-spin 0.7s linear infinite;
+}
+
+.am-state--empty .am-state__icon {
+  font-size: 1.6rem;
+}
+
+.am-state__hint {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+/* =============== PAGINATOR =============== */
+mat-paginator {
+  margin-top: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(209, 213, 219, 0.9);
+}
+
+/* =============== UTILS =============== */
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+}
+
+/* =============== ANIMATIONS =============== */
+@keyframes am-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =============== RESPONSIVE =============== */
+@media (max-width: 768px) {
+  .am-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .am-hero__left {
+    max-width: 100%;
+  }
+
+  .am-hero__right {
+    justify-content: flex-start;
+  }
+
+  .am-table .mat-mdc-cell,
+  .am-table .mat-mdc-header-cell {
+    padding: 8px 10px;
+  }
+}

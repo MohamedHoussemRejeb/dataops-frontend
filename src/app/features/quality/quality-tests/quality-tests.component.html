@@ -1,0 +1,87 @@
+<div class="card mt-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>Règles qualité (type Soda)</span>
+    <small class="text-muted" *ngIf="tests.length">
+      {{ tests.length }} règles configurées
+    </small>
+  </div>
+
+  <div class="card-body">
+    <!-- Loading -->
+    <div *ngIf="loading" class="text-muted">
+      Chargement des règles qualité…
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="!loading && error" class="alert alert-danger">
+      {{ error }}
+    </div>
+
+    <!-- Content -->
+    <ng-container *ngIf="!loading && !error">
+      <!-- No tests -->
+      <div *ngIf="!tests.length" class="text-muted">
+        Aucune règle qualité configurée pour ce dataset.
+      </div>
+
+      <!-- Tests list -->
+      <div *ngIf="tests.length">
+        <div class="rules-list mb-3">
+          <div *ngFor="let t of tests" class="rule-item">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <div class="rule-name">
+                  {{ t.name }}
+                  <span class="text-muted" *ngIf="t.column">
+                    • {{ t.column }}
+                  </span>
+                </div>
+                <div class="rule-meta text-muted small">
+                  Dimension : {{ t.dimension }}
+                  <ng-container *ngIf="t.threshold != null">
+                    • seuil : {{ t.threshold }}
+                  </ng-container>
+                  <ng-container *ngIf="t.currentValue != null">
+                    • actuel : {{ t.currentValue }}
+                  </ng-container>
+                </div>
+              </div>
+              <span [ngClass]="badgeClass(t)">
+                {{ t.status }}
+              </span>
+            </div>
+
+            <!-- Mini 7-day history -->
+<!-- mini 7-day history -->
+<div class="history small text-muted" *ngIf="t.history as hist">
+  <span>7 derniers jours : </span>
+  <span *ngFor="let h of hist; let i = index">
+    <span
+      class="dot"
+      [ngClass]="{
+        ok: h.value <= (t.threshold ?? h.value),
+        ko: h.value > (t.threshold ?? h.value)
+      }"
+    ></span>
+    <ng-container *ngIf="i < hist.length - 1"> </ng-container>
+  </span>
+</div>
+          </div>
+        </div>
+
+        <!-- Top 3 problem columns -->
+        <div *ngIf="topProblemColumns.length">
+          <h6>Top 3 colonnes à problème</h6>
+          <ul class="list-unstyled mb-0 small">
+            <li *ngFor="let c of topProblemColumns">
+              <strong>{{ c.column }}</strong>
+              <span class="text-muted">
+                • {{ c.failedCount }} règle(s) en échec
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>

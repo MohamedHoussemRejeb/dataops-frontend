@@ -1,0 +1,346 @@
+<!-- src/app/features/dashboard/dashboard.component.html -->
+
+<!-- En-tête de page -->
+<div class="page-header d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="page-title mb-1">Dashboard DataOps</h2>
+    <p class="page-subtitle mb-0">
+      Vue globale en temps réel des exécutions, SLA et datasets à risque.
+    </p>
+</div>
+<div class="ms-3">
+</div>
+<div class="d-flex align-items-center gap-3">
+    <div class="live-indicator d-flex align-items-center gap-2">
+      <span class="status-dot status-live"></span>
+      <div class="form-check form-switch m-0">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="autoRefreshSwitch"
+          checked
+        />
+        <label class="form-check-label small" for="autoRefreshSwitch">
+          Auto-refresh temps réel
+        </label>
+      </div>
+    </div>
+
+    <button class="btn btn-outline-primary btn-sm btn-refresh" (click)="load()">
+      <i class="ti ti-refresh me-1"></i>
+      Refresh
+    </button>
+  </div>
+</div>
+
+<!-- État de chargement -->
+<div *ngIf="loading()" class="loading-state text-center py-5 text-muted">
+  <div class="spinner-border spinner-border-sm text-primary mb-3"></div>
+  <p class="mb-1">Chargement du tableau de bord…</p>
+  <small>Récupération des métriques DataOps en temps réel.</small>
+</div>
+
+<!-- Contenu principal -->
+<div *ngIf="!loading() && summary() as s" class="dashboard-layout">
+
+  <!-- KPI cards -->
+  <div class="row mb-4">
+    <!-- Runs aujourd'hui -->
+    <div class="col-xl-3 col-md-6 mb-3">
+      <div class="card kpi-card h-100">
+        <div class="card-body kpi d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <div class="kpi-title">Runs aujourd'hui</div>
+              <div class="kpi-value">{{ s.runsToday }}</div>
+            </div>
+            <div class="kpi-avatar bg-primary-subtle">
+              <i class="ti ti-player-play-filled text-primary"></i>
+            </div>
+          </div>
+          <div class="kpi-sub">
+            Exécutions toutes sources confondues
+          </div>
+          <div class="kpi-meta mt-2">
+            <span class="badge bg-light text-muted">
+              Indicateur journalier
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- % Failed -->
+    <div class="col-xl-3 col-md-6 mb-3">
+      <div class="card kpi-card h-100">
+        <div class="card-body kpi d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <div class="kpi-title">% Failed</div>
+              <div class="kpi-value text-danger">{{ failedPercent() }}%</div>
+            </div>
+            <div class="kpi-avatar bg-danger-subtle">
+              <i class="ti ti-alert-triangle text-danger"></i>
+            </div>
+          </div>
+          <div class="kpi-sub">
+            Taux d'échec des runs exécutés aujourd'hui.
+          </div>
+          <div class="kpi-meta mt-2">
+            <span class="badge bg-danger-soft text-danger">
+              À surveiller
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- % SLA respectés -->
+    <div class="col-xl-3 col-md-6 mb-3">
+      <div class="card kpi-card h-100">
+        <div class="card-body kpi d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <div class="kpi-title">% SLA respectés</div>
+              <div class="kpi-value text-success">{{ slaPercent() }}%</div>
+            </div>
+            <div class="kpi-avatar bg-success-subtle">
+              <i class="ti ti-shield-check text-success"></i>
+            </div>
+          </div>
+          <div class="kpi-sub">
+            Part des datasets conformes à leurs engagements SLA.
+          </div>
+          <div class="kpi-meta mt-2">
+            <span class="badge bg-success-soft text-success">
+              Objectif fiabilité
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Datasets à risque -->
+    <div class="col-xl-3 col-md-6 mb-3">
+      <div class="card kpi-card h-100">
+        <div class="card-body kpi d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <div class="kpi-title">Datasets à risque</div>
+              <div class="kpi-value text-warning">{{ riskyCount() }}</div>
+            </div>
+            <div class="kpi-avatar bg-warning-subtle">
+              <i class="ti ti-flame text-warning"></i>
+            </div>
+          </div>
+          <div class="kpi-sub">
+            Top datasets en état <strong>WARNING</strong> ou
+            <strong>FAILED</strong>.
+          </div>
+          <div class="kpi-meta mt-2">
+            <span class="badge bg-warning-soft text-warning">
+              Priorité remédiation
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Graph section -->
+  <div class="row mb-4">
+    <!-- Runs & échecs -->
+    <div class="col-xl-7 mb-3">
+      <div class="card h-100">
+        <div class="card-header card-header-light d-flex justify-content-between align-items-center">
+          <div>
+            <div class="card-title-sm">Runs & échecs</div>
+            <small class="text-muted">Volume d'exécution sur les 7 derniers jours.</small>
+          </div>
+          <a routerLink="/calendar" class="btn btn-link btn-sm">
+            Voir le calendrier
+          </a>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrapper">
+            <apx-chart
+              [series]="runsChartOptions.series"
+              [chart]="runsChartOptions.chart"
+              [xaxis]="runsChartOptions.xaxis"
+              [stroke]="runsChartOptions.stroke"
+              [dataLabels]="runsChartOptions.dataLabels"
+              [grid]="runsChartOptions.grid"
+              [tooltip]="runsChartOptions.tooltip"
+              [legend]="runsChartOptions.legend">
+            </apx-chart>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLA & qualité -->
+    <div class="col-xl-5 mb-3">
+      <div class="card h-100">
+        <div class="card-header card-header-light d-flex justify-content-between align-items-center">
+          <div>
+            <div class="card-title-sm">SLA & qualité (répartition)</div>
+            <small class="text-muted">Répartition des statuts de qualité sur les datasets monitorés.</small>
+          </div>
+          <a routerLink="/quality" class="btn btn-link btn-sm">
+            Voir les tests qualité
+          </a>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrapper">
+            <apx-chart
+              [series]="slaChartOptions.series"
+              [chart]="slaChartOptions.chart"
+              [xaxis]="slaChartOptions.xaxis"
+              [yaxis]="slaChartOptions.yaxis"
+              [plotOptions]="slaChartOptions.plotOptions"
+              [dataLabels]="slaChartOptions.dataLabels"
+              [grid]="slaChartOptions.grid"
+              [tooltip]="slaChartOptions.tooltip"
+              [legend]="slaChartOptions.legend">
+            </apx-chart>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom section: Alerts / Risky datasets / Sources & Workflow -->
+  <div class="row">
+    <!-- Alerts -->
+    <div class="col-xl-4 mb-3">
+      <div class="card h-100">
+        <div class="card-header card-header-light d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <i class="ti ti-bell-ringing text-danger"></i>
+            <span class="card-title-sm">Alerts & incidents récents</span>
+          </div>
+          <a routerLink="/alerts" class="btn btn-link btn-sm">
+            Voir tout
+          </a>
+        </div>
+        <div class="card-body p-0">
+          <ul class="list-group list-group-flush">
+            <li
+              *ngFor="let e of s.topErrors"
+              class="list-group-item d-flex justify-content-between align-items-start">
+              <div class="me-2">
+                <div class="fw-semibold">{{ e.code }}</div>
+                <small class="text-muted d-block text-truncate alert-message">
+                  {{ e.message }}
+                </small>
+              </div>
+              <span class="badge bg-danger-soft text-danger">
+                {{ e.count7d }}x
+              </span>
+            </li>
+            <li *ngIf="!s.topErrors?.length" class="list-group-item text-center text-muted py-3">
+              Aucun incident significatif sur les 7 derniers jours.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risky datasets -->
+    <div class="col-xl-5 mb-3">
+      <div class="card h-100">
+        <div class="card-header card-header-light d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <i class="ti ti-database-exclamation text-warning"></i>
+            <span class="card-title-sm">Top datasets risqués</span>
+          </div>
+          <a routerLink="/catalog" class="btn btn-link btn-sm">
+            Ouvrir le catalogue
+          </a>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-sm table-hover mb-0 align-middle risky-table">
+            <thead>
+              <tr>
+                <th>Dataset</th>
+                <th>Domaine</th>
+                <th class="text-end">Risque</th>
+                <th class="text-end">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let d of s.topDatasets">
+                <td>
+                  <span class="fw-semibold d-block">{{ d.name }}</span>
+                  <small class="text-muted d-block text-truncate dataset-urn">
+                    {{ d.urn }}
+                  </small>
+                </td>
+                <td>{{ d.domain || '-' }}</td>
+                <td class="text-end">
+                  {{ (d.riskScore * 100) | number:'1.0-0' }}%
+                </td>
+                <td class="text-end">
+                  <span
+                    class="badge"
+                    [ngClass]="{
+                      'bg-success-soft text-success': d.lastStatus === 'SUCCESS',
+                      'bg-danger-soft text-danger': d.lastStatus === 'FAILED',
+                      'bg-warning-soft text-warning': d.lastStatus !== 'FAILED' && d.lastStatus !== 'SUCCESS'
+                    }">
+                    {{ d.lastStatus === 'SUCCESS' ? 'OK' : d.lastStatus }}
+                  </span>
+                </td>
+              </tr>
+              <tr *ngIf="!s.topDatasets?.length">
+                <td colspan="4" class="text-center text-muted py-3">
+                  Aucun dataset actuellement en risque élevé.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sources & Workflow -->
+    <div class="col-xl-3 mb-3">
+      <div class="card h-100">
+        <div class="card-header card-header-light d-flex align-items-center gap-2">
+          <i class="ti ti-topology-complex text-primary"></i>
+          <span class="card-title-sm">Sources & Workflow</span>
+        </div>
+        <div class="card-body d-flex flex-column gap-3">
+          <div>
+            <p class="text-muted mb-1">Sources connectées</p>
+            <div class="d-flex justify-content-between small">
+              <span>Online</span>
+              <span class="fw-semibold text-success">5</span>
+            </div>
+            <div class="d-flex justify-content-between small">
+              <span>Offline</span>
+              <span class="fw-semibold text-danger">1</span>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-muted mb-1">Next scheduled runs</p>
+            <small class="d-block">Article → 14:15</small>
+            <small class="d-block">Commandes → 14:45</small>
+            <small class="d-block">Mouvement stock → 15:30</small>
+          </div>
+
+          <div class="mt-auto">
+            <a routerLink="/workflow-engine" class="btn btn-outline-secondary btn-sm w-100 mb-2">
+              Ouvrir Workflow Engine
+            </a>
+            <a routerLink="/sources" class="btn btn-outline-secondary btn-sm w-100">
+              Gérer les sources
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

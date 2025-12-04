@@ -1,0 +1,228 @@
+<!-- src/app/features/docs/docs-list.component.html -->
+
+<div class="docs-list container py-3">
+
+  <!-- ====== Header ====== -->
+  <div class="dl-header mb-4">
+    <div>
+      <h4 class="mb-1 d-flex align-items-center gap-2">
+        <span class="dl-badge-dot"></span>
+        Documents & Politiques
+      </h4>
+      <p class="text-muted mb-0">
+        Centralise les politiques, guides, procédures et documents clés pour la gouvernance
+        (RGPD, Loi 25, gestion d’incidents, etc.).
+      </p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 dl-header-stats">
+      <div class="dl-stat-pill">
+        <span class="label">Documents visibles</span>
+        <span class="value">{{ filtered().length }}</span>
+      </div>
+      <div class="dl-stat-pill">
+        <span class="label">Type actif</span>
+        <span class="value">
+          {{ kind() || 'Tous' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Bloc ADMIN : import de document ====== -->
+  <div class="card dl-card-admin mb-4" *ngIf="showAdminUpload">
+    <div class="dl-card-admin-header d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h6 class="mb-1">Importer un document (admin)</h6>
+        <small class="acf-subtext">
+          Ajoute une nouvelle politique, procédure ou ligne directrice dans le catalogue.
+        </small>
+      </div>
+      <span class="badge dl-badge-admin">ADMIN</span>
+    </div>
+
+    <div class="row g-3 dl-admin-grid">
+      <div class="col-lg-6">
+        <label class="form-label form-label-sm">Titre</label>
+        <input
+          class="form-control form-control-sm"
+          [(ngModel)]="newTitle"
+          placeholder="Ex : Politique RGPD, Procédure incidents, Loi 25..."
+        />
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <label class="form-label form-label-sm">Type</label>
+        <select class="form-select form-select-sm" [(ngModel)]="newType">
+          <option value="policy">Politique</option>
+          <option value="guideline">Guide / Ligne directrice</option>
+          <option value="procedure">Procédure</option>
+          <option value="other">Autre</option>
+        </select>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <label class="form-label form-label-sm">Tags</label>
+        <input
+          class="form-control form-control-sm"
+          [(ngModel)]="newTagsText"
+          placeholder="rgpd, law25, incident..."
+        />
+      </div>
+
+      <div class="col-12">
+        <label class="form-label form-label-sm">Résumé (optionnel)</label>
+        <textarea
+          class="form-control form-control-sm"
+          rows="2"
+          [(ngModel)]="newSummary"
+          placeholder="Résumé court du document"
+        ></textarea>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label form-label-sm d-block">Fichier</label>
+        <input
+          type="file"
+          class="form-control form-control-sm"
+          (change)="onFileSelected($event)"
+        />
+      </div>
+
+      <div class="col-md-6 d-flex align-items-end justify-content-md-end">
+        <button
+          class="btn btn-sm btn-primary px-4 dl-btn-import"
+          [disabled]="!newTitle || !newType || !selectedFile || saving"
+          (click)="createDoc()"
+        >
+          {{ saving ? 'Enregistrement…' : 'Importer le document' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-2 d-flex align-items-center gap-3">
+      <span *ngIf="saveSuccess" class="text-success small">
+        ✅ Document importé avec succès.
+      </span>
+      <span *ngIf="saveError" class="text-danger small">
+        {{ saveError }}
+      </span>
+    </div>
+  </div>
+
+  <!-- ====== Filtres de recherche ====== -->
+  <div class="dl-filters card mb-3">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-center">
+        <div class="col-md-6">
+          <label class="form-label form-label-sm">Recherche</label>
+          <input
+            class="form-control form-control-sm"
+            [ngModel]="q()"
+            (ngModelChange)="q.set($event); reload()"
+            placeholder="Rechercher par titre, résumé…"
+          />
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <label class="form-label form-label-sm">Type</label>
+          <select
+            class="form-select form-select-sm"
+            [ngModel]="kind()"
+            (ngModelChange)="kind.set($event); reload()"
+          >
+            <option value="">Tous</option>
+            <option value="policy">Politique</option>
+            <option value="guideline">Guide / Ligne directrice</option>
+            <option value="procedure">Procédure</option>
+            <option value="other">Autre</option>
+          </select>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <label class="form-label form-label-sm">Tag</label>
+          <input
+            class="form-control form-control-sm"
+            [ngModel]="tag()"
+            (ngModelChange)="tag.set($event); reload()"
+            placeholder="Tag (rgpd, law25…)"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Loading / Error / Empty states ====== -->
+  <app-state-block
+    *ngIf="loading()"
+    icon="⏳"
+    [title]="'Chargement…'">
+  </app-state-block>
+
+  <app-state-block
+    *ngIf="!loading() && error()"
+    icon="⚠️"
+    [title]="'Erreur'"
+    [message]="error() ?? undefined"
+    [actionLabel]="'Réessayer'"
+    [action]="reload">
+  </app-state-block>
+
+  <app-state-block
+    *ngIf="!loading() && !error() && !filtered().length"
+    icon="📄"
+    [title]="'Aucun document'">
+  </app-state-block>
+
+  <!-- ====== Liste des documents ====== -->
+  <div
+    class="dl-list"
+    *ngIf="!loading() && !error() && filtered().length"
+  >
+    <div
+      class="dl-doc-card"
+      *ngFor="let d of filtered()"
+    >
+      <div class="dl-doc-main">
+        <div class="dl-doc-title-row">
+          <!-- Titre cliquable -->
+          <a
+            class="dl-doc-title"
+            [href]="svc.getFileUrl(d)"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ d.title }}
+          </a>
+
+          <!-- Type badge -->
+          <span class="dl-type-pill dl-type-{{ d.type || 'other' }}">
+            {{ d.type || 'other' }}
+          </span>
+        </div>
+
+        <div class="dl-doc-tags-row" *ngIf="(d.tags || []).length">
+          <span
+            class="dl-tag-chip"
+            *ngFor="let t of (d.tags || [])"
+          >
+            {{ t }}
+          </span>
+        </div>
+
+        <div class="dl-doc-summary text-muted small" *ngIf="d.summary">
+          {{ d.summary }}
+        </div>
+      </div>
+
+      <div class="dl-doc-meta text-end">
+        <div
+          class="dl-doc-updated small text-muted"
+          *ngIf="d.updatedAt"
+        >
+          MAJ&nbsp;: {{ d.updatedAt | date:'short' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

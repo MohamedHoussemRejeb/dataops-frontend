@@ -1,0 +1,280 @@
+.cy-node-selected {
+  outline: 3px solid #6c5ce7;
+  outline-offset: 3px;
+}
+/* ============ PAGE ROOT ============ */
+:host {
+  display: block;
+  padding: 1.5rem;
+  background: #f5f7fb;
+  color: #111827;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.lineage-page {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ============ HERO ============ */
+.lineage-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 18px 22px;
+  border-radius: 16px;
+
+  background: linear-gradient(
+    135deg,
+    #212631 0%,
+    #1e293b 45%,
+    #020617 100%
+  );
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
+  flex-wrap: wrap;
+}
+
+.lineage-hero__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lineage-hero__chip {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.55);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lineage-hero__title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #f9fafb;
+}
+
+.lineage-hero__subtitle {
+  margin: 0;
+  font-size: 0.86rem;
+  color: rgba(226, 232, 240, 0.92);
+}
+
+.lineage-hero__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ============ Controls (toggle + select) ============ */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #e5e7eb;
+
+  input[type='checkbox'] {
+    accent-color: #4f46e5;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.select {
+  padding: 7px 10px;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(148, 163, 184, 0.9);
+  background: #ffffff;
+  font-size: 0.85rem;
+  color: #111827;
+  outline: none;
+  min-width: 180px;
+  transition:
+    border-color 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
+}
+
+.select:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.2);
+}
+
+/* ============ CARD GRAPHE ============ */
+.lineage-card {
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  padding: 0.9rem;
+}
+
+/* ============ Canvas SVG ============ */
+.canvas {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  border-radius: 12px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+svg {
+  width: 100%;
+  height: 100%;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+/* Colonnes */
+.col-title {
+  font-size: 14px;
+  font-weight: 600;
+  fill: #4b5563;
+}
+
+.col-sep {
+  stroke: #e5e7eb;
+  stroke-width: 1;
+}
+
+/* Arêtes */
+.edges line {
+  stroke: #98a2b3;
+  stroke-width: 2;
+  opacity: 0.9;
+}
+
+.edges line.dimmed {
+  opacity: 0.25;
+}
+
+marker path {
+  fill: #98a2b3;
+}
+
+/* Nœuds */
+.nodes .node rect {
+  fill: #f9fafb;
+  stroke: #d1d5db;
+  stroke-width: 1;
+  rx: 12;
+  ry: 12;
+}
+
+.nodes .node.active rect {
+  stroke: #4f46e5;
+  stroke-width: 2;
+}
+
+.node .label {
+  font-size: 13px;
+  font-weight: 600;
+  fill: #111827;
+}
+
+.node .meta {
+  font-size: 12px;
+  fill: #6b7280;
+}
+
+.node .id {
+  font-size: 11px;
+  fill: #9ca3af;
+}
+
+/* ============ States (loading / error / empty) ============ */
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0.6rem;
+  font-size: 0.87rem;
+  color: #4b5563;
+}
+
+.state--error {
+  color: #b91c1c;
+}
+
+.state--loading .state__spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(148, 163, 184, 0.5);
+  border-top-color: #4f46e5;
+  animation: lineage-spin 0.65s linear infinite;
+}
+
+.state--empty {
+  padding: 0.8rem;
+}
+
+.state__icon {
+  font-size: 1.4rem;
+}
+
+@keyframes lineage-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============ Légende ============ */
+.legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #4b5563;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.legend-dot--s {
+  background: #51cf66;
+}
+
+.legend-dot--t {
+  background: #1c7ed6;
+}
+
+.legend-dot--w {
+  background: #845ef7;
+}
+
+.legend-hint {
+  color: #6b7280;
+}
+
+/* ============ Responsive ============ */
+@media (max-width: 768px) {
+  .lineage-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .lineage-hero__controls {
+    justify-content: flex-start;
+  }
+
+  .select {
+    min-width: 0;
+  }
+}

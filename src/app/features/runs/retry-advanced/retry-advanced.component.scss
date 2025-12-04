@@ -1,0 +1,54 @@
+/* ---------- Layout du dialog (inchangé) ---------- */
+.dlg { min-width: 640px; max-width: 860px; display:flex; flex-direction:column; }
+.dlg__header { padding: 8px 24px 0; }
+.dlg__header h2 { margin: 0; font-weight: 600; }
+.dlg__subtitle { color: var(--cui-gray-600, #6c757d); margin-top: 2px; }
+.dlg__content { padding: 16px 24px 0; }
+.dlg__actions {
+  position: sticky; bottom: 0;
+  display: flex; gap: 12px; justify-content: flex-end;
+  padding: 12px 16px; border-top: 1px solid rgba(0,0,0,.08);
+  background: var(--cui-body-bg, #fff);
+}
+.grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+.col { display: flex; flex-direction: column; gap: 12px; }
+.w-100 { width: 100%; }
+.my-3 { margin: 16px 0; }
+.me-1 { margin-right: 6px; }
+.small { font-size: .85rem; }
+.muted { color: var(--cui-gray-600, #6c757d); }
+.label { font-weight: 600; margin-bottom: 6px; }
+
+/* ---------- Chips (listbox + options) ---------- */
+/* Réduit le padding interne et aligne le contenu à gauche */
+.retry-advanced-dialog .mat-mdc-chip .mdc-evolution-chip__action--primary {
+  padding-left: 8px !important;   /* ← au lieu de 12px */
+  padding-right: 12px !important;
+  justify-content: flex-start !important; /* pas centré */
+}
+
+/* Icône de check : dimension et placement serrés à gauche */
+.retry-advanced-dialog .chip-icon {
+  margin-left: 0 !important;
+  margin-right: 8px !important;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;           /* évite un décalage vertical */
+  vertical-align: middle;   /* garde l’alignement avec le texte */
+}
+
+/* (déjà présent normalement) : on désactive les éléments MDC qui ajoutent du vide/icône */
+.retry-advanced-dialog .mdc-evolution-chip__checkmark,
+.retry-advanced-dialog .mdc-evolution-chip__primary-graphic,
+.retry-advanced-dialog .mdc-evolution-chip__icon--primary {
+  display: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+
+

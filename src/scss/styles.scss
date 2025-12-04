@@ -1,0 +1,185 @@
+/* 1) TOUTES les @use d’abord */
+@use "@coreui/coreui/scss/coreui" as * with (
+  $enable-deprecation-messages: false
+);
+@use "@coreui/chartjs/scss/coreui-chartjs";
+@use "theme";
+// @use "fixes";
+@use "custom";
+@use "examples";
+
+/* 2) Ensuite seulement les imports CSS (ex: thème Angular Material) */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+@import "cytoscape-panzoom/cytoscape.js-panzoom.css";
+
+
+/* 3) Enfin tes overrides — ils gagnent sur tout le reste */
+.cdk-overlay-container, .cdk-overlay-pane {
+  z-index: 2000 !important;
+}
+
+.mat-select-panel,
+.mat-datepicker-content,
+.mat-calendar {
+  background: var(--cui-body-bg, #fff) !important;
+  color: inherit;
+}
+
+.mat-calendar {
+  box-shadow: 0 6px 24px rgba(0,0,0,.15);
+  border-radius: 10px;
+}
+
+.mat-mdc-select-panel,
+.mat-mdc-menu-panel,
+.mat-mdc-autocomplete-panel,
+.mat-mdc-datepicker-content,
+.mdc-menu-surface {
+  background-color: #fff !important;
+  color: rgba(0, 0, 0, 0.87) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+:root {
+  --status-ok:      #2fb344;
+  --status-running: #1c7ed6;
+  --status-late:    #f59f00;
+  --status-failed:  #e03131;
+  --status-unknown: #adb5bd;
+
+  --bg: #f3f4f6;
+  --card: #fff;
+  --text: #1f2328;
+}
+
+:root.dark {
+  --bg: #0f1220;
+  --card: #151a2d;
+  --text: #e6e9ef;
+}
+
+/* Exemple d’usage global */
+body { background: var(--bg); color: var(--text); }
+.badge.ok      { background: var(--status-ok); }
+.badge.running { background: var(--status-running); }
+.badge.late    { background: var(--status-late); }
+.badge.failed  { background: var(--status-failed); }
+.badge.unknown { background: var(--status-unknown); }
+
+/* ====== Toasters neutres (gris) — unifiés ====== */
+
+/* A) Bootstrap .toast (utilisé dans runs-list) */
+.toast,
+.toast.text-bg-success,
+.toast.text-bg-danger,
+.toast.text-bg-warning,
+.toast.text-bg-info,
+.toast.text-bg-secondary,
+.toast.text-bg-dark {
+  background-color: #f1f3f5 !important; /* gris clair */
+  color: #212529 !important;            /* texte sombre lisible */
+  border: 1px solid rgba(0,0,0,.12) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+}
+
+/* Bouton close en mode sombre de toast */
+.toast .btn-close,
+.toast .btn-close-white {
+  filter: invert(0);    /* noir */
+  opacity: .6;
+}
+.toast .btn-close:hover { opacity: .9; }
+
+/* Optionnel: arrondis cohérents */
+.toast {
+  border-radius: 10px;
+}
+
+/* Container positionné (si tu utilises le container Bootstrap en bas à droite) */
+.toast-container {
+  z-index: 1080;
+}
+
+/* B) Snackbars Angular Material (gris neutre aussi) */
+.mdc-snackbar .mdc-snackbar__surface,
+.mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  background-color: #f1f3f5 !important;
+  color: #212529 !important;
+  border: 1px solid rgba(0,0,0,.12);
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  border-radius: 10px !important;
+}
+
+/* Texte et action */
+.mat-mdc-snack-bar-label {
+  color: inherit !important;
+}
+.mat-mdc-snack-bar-actions .mdc-button {
+  color: #2740c6 !important; /* lien/action cohérent avec ta charte */
+}
+
+/* C) Si tu as un ToastService custom avec des classes .app-toast / .toast-card */
+.app-toast, .toast-card {
+  background: #f1f3f5 !important;
+  color: #212529 !important;
+  border: 1px solid rgba(0,0,0,.12);
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  border-radius: 10px;
+}
+
+/* (facultatif) petite animation d’apparition */
+.toast,
+.mat-mdc-snack-bar-container {
+  animation: toastFade .18s ease-out;
+}
+/* ---- FOND DU LOGIN ---- */
+.login-page {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  overflow: hidden;
+
+}
+
+/* ---- IMAGE FUSÉE (BACKGROUND) ---- */
+.login-page::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+
+  background-color: #212631;
+
+  /* 👇 LA CLÉ */
+  background-size: cover;         /* couvre TOUT l’écran */
+  background-repeat: no-repeat;
+  background-position: center;     /* CENTRAGE */
+  background-attachment: fixed;    /* suit l’écran en entier */
+
+
+  pointer-events: none;             /* clics non bloqués */
+  z-index: 0;
+}
+
+
+/* Bouton couleur LOGO TALYS → Orange */
+.login-btn {
+  background: linear-gradient(135deg, #ff7a1a, #ff9740);
+  border-color: #ff7a1a;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 8px 16px rgba(255, 122, 26, 0.25);
+  transition: 0.2s ease;
+}
+
+.login-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 10px 22px rgba(255, 122, 26, 0.35);
+}
+
+@keyframes toastFade { from { opacity: 0; transform: translateY(4px)} to { opacity:1; transform:none } }
+
+

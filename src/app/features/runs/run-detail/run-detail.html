@@ -1,0 +1,121 @@
+<div class="container-fluid p-0">
+  <div class="d-flex align-items-center mb-3">
+    <a class="btn btn-light me-2" routerLink="/runs">← Retour</a>
+    <h4 class="mb-0">Détail du run</h4>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <ng-container *ngIf="!loading && run; else loadingTpl">
+        <div class="row g-3 mb-3">
+          <div class="col-12 col-lg-3">
+            <div class="label">Statut</div>
+            <span class="badge fw-semibold" [ngClass]="statusBadge(run.status)">{{ run.status }}</span>
+          </div>
+          <div class="col-12 col-lg-3">
+            <div class="label">Flux</div>
+            <div class="value">{{ run.flowType }}</div>
+          </div>
+          <div class="col-12 col-lg-3">
+            <div class="label">Début</div>
+            <div class="value">{{ run.startTime | date:'short' }}</div>
+          </div>
+          <div class="col-12 col-lg-3">
+            <div class="label">Fin</div>
+            <div class="value">{{ run.endTime | date:'short' }}</div>
+          </div>
+
+          <div class="col-12 col-lg-3">
+            <div class="label">Durée</div>
+            <div class="value">{{ duration(run!) }}</div>
+          </div>
+          <div class="col-12 col-lg-3">
+            <div class="label">Lignes</div>
+            <div class="value">{{ run.rowsIn || 0 }} / {{ run.rowsOut || 0 }} / {{ run.rowsError || 0 }}</div>
+          </div>
+          <div class="col-12 col-lg-6">
+            <div class="label">Fichier source</div>
+            <div class="value mono">{{ run.sourceFile || '-' }}</div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mb-3">
+          <button class="btn btn-primary" (click)="retry()" [disabled]="run.status==='RUNNING'">Relancer (Retry)</button>
+          <a class="btn btn-outline-secondary" routerLink="/upload">Uploader un fichier</a>
+        </div>
+
+        <!-- Onglets -->
+        <ul class="nav nav-tabs">
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="tab==='overview'" (click)="tab='overview'">Aperçu</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="tab==='logs'" (click)="tab='logs'">Logs</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="tab==='meta'" (click)="tab='meta'">Métadonnées</a>
+          </li>
+        </ul>
+
+        <div class="tab-content p-3 border border-top-0 rounded-bottom">
+          <!-- Aperçu -->
+          <div *ngIf="tab==='overview'">
+            <p class="mb-2"><strong>Message :</strong> {{ run.message || '—' }}</p>
+            <p class="mb-0"><strong>Déclencheur :</strong> {{ run.trigger || '—' }}</p>
+          </div>
+
+          <!-- Logs -->
+          <div *ngIf="tab==='logs'">
+            <div class="table-responsive">
+              <table class="table table-sm align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width:180px">Horodatage</th>
+                    <th style="width:100px">Niveau</th>
+                    <th>Message</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let l of logs">
+                    <td class="mono">{{ l.ts | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+                    <td>
+                      <span class="badge"
+                        [ngClass]="{
+                          'text-bg-danger': l.level==='ERROR',
+                          'text-bg-warning text-dark': l.level==='WARN',
+                          'text-bg-secondary': l.level==='INFO'
+                        }">{{ l.level }}</span>
+                    </td>
+                    <td class="mono">{{ l.msg }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Meta -->
+          <div *ngIf="tab==='meta'">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="label">Run ID</div>
+                <div class="value mono">{{ run.id }}</div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="label">Trigger</div>
+                <div class="value">{{ run.trigger || '—' }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-template #loadingTpl>
+        <div class="text-muted">Chargement…</div>
+      </ng-template>
+
+      <ng-container *ngIf="!loading && !run">
+        <div class="alert alert-warning mt-3">Run introuvable.</div>
+      </ng-container>
+    </div>
+  </div>
+</div>

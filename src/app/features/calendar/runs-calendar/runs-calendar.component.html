@@ -1,0 +1,199 @@
+<div class="container-fluid" *ngIf="!loading">
+
+  <!-- GROSSE CARTE STYLE "SUPERVISION TEMPS RÉEL" -->
+  <div class="card calendar-card shadow-sm">
+
+    <!-- HEADER DÉGRADÉ -->
+    <div
+      class="card-header calendar-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h5 class="mb-0">Calendrier des exécutions</h5>
+        <small class="text-muted-subtle d-block">
+          Vue chronologique des derniers flux traités
+        </small>
+      </div>
+
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+
+        <!-- Légende statuts -->
+        <div class="calendar-legend d-none d-md-flex">
+          <span class="legend-item">
+            <span class="legend-dot ok"></span> Succès
+          </span>
+          <span class="legend-item">
+            <span class="legend-dot ko"></span> Échec
+          </span>
+          <span class="legend-item">
+            <span class="legend-dot run"></span> En cours
+          </span>
+          <span class="legend-item">
+            <span class="legend-dot pd"></span> En attente
+          </span>
+        </div>
+
+        <!-- Boutons de période -->
+        <div class="btn-group ms-2">
+          <button class="btn btn-sm"
+                  [class.btn-primary]="range==='7d'"
+                  [class.btn-outline-light]="range!=='7d'"
+                  (click)="setRange('7d')">
+            7 jours
+          </button>
+          <button class="btn btn-sm"
+                  [class.btn-primary]="range==='30d'"
+                  [class.btn-outline-light]="range!=='30d'"
+                  (click)="setRange('30d')">
+            30 jours
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BODY BLANC -->
+    <div class="card-body p-3">
+
+      <!-- ⭐ Panneau de détails -->
+      <div *ngIf="selectedRun" class="card mb-3 run-details-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge rounded-pill bg-light text-body-tertiary border">
+                Run #{{ selectedRun.id }}
+              </span>
+              <span class="badge rounded-pill"
+                    [ngClass]="{
+                      'bg-success-subtle text-success': selectedRun.status === 'SUCCESS',
+                      'bg-danger-subtle text-danger':  selectedRun.status === 'FAILED',
+                      'bg-warning-subtle text-warning': selectedRun.status === 'RUNNING',
+                      'bg-secondary-subtle text-secondary': selectedRun.status === 'PENDING'
+                    }">
+                {{ selectedRun.status }}
+              </span>
+            </div>
+            <small class="text-muted d-block mt-1">
+              {{ selectedRun.flowType }} •
+              {{ selectedRun.startTime | date:'short' }}
+            </small>
+          </div>
+
+          <a class="btn btn-sm btn-outline-secondary"
+             [routerLink]="['/runs', selectedRun.id]">
+            Ouvrir la page Run
+          </a>
+        </div>
+
+        <div class="card-body">
+
+          <!-- Loading -->
+          <div *ngIf="metaLoading" class="text-muted">
+            Chargement des métadonnées…
+          </div>
+
+          <!-- Erreur -->
+          <div *ngIf="!metaLoading && metaError" class="alert alert-danger mb-0">
+            {{ metaError }}
+          </div>
+
+          <!-- Contenu -->
+          <ng-container *ngIf="!metaLoading && !metaError && selectedMeta">
+            <div class="row gy-3">
+              <div class="col-md-6">
+                <h6 class="section-title">Volumes & Qualité</h6>
+                <ul class="list-unstyled mb-3 small">
+                  <li><strong>Lignes IN :</strong> {{ selectedMeta.rowCountIn ?? '—' }}</li>
+                  <li><strong>Lignes OUT :</strong> {{ selectedMeta.rowCountOut ?? '—' }}</li>
+                  <li><strong>% nulls :</strong> {{ selectedMeta.nullPct ?? '—' }}</li>
+                  <li><strong>% invalides :</strong> {{ selectedMeta.invalidPct ?? '—' }}</li>
+                </ul>
+
+                <h6 class="section-title">Fichier source</h6>
+                <ul class="list-unstyled mb-0 small">
+                  <li><strong>Nom :</strong> {{ selectedMeta.fileName || '—' }}</li>
+                  <li>
+                    <strong>Taille :</strong>
+                    <ng-container *ngIf="selectedMeta.fileSizeBytes as size; else noSize">
+                      {{ size | number }} octets
+                    </ng-container>
+                    <ng-template #noSize>—</ng-template>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="col-md-6">
+                <h6 class="section-title">Performance & infra</h6>
+                <ul class="list-unstyled mb-3 small">
+                  <li><strong>Latence :</strong> {{ selectedMeta.latencySec ?? '—' }} s</li>
+                  <li><strong>CPU :</strong> {{ selectedMeta.cpuPct ?? '—' }} %</li>
+                  <li><strong>RAM :</strong> {{ $any(selectedMeta).ramPct ?? '—' }} %</li>
+                  <li><strong>Host :</strong> {{ selectedMeta.executionHost || '—' }}</li>
+                </ul>
+
+                <h6 class="section-title">Création metadata</h6>
+                <div class="text-muted small">
+                  {{ selectedMeta.createdAt ? (selectedMeta.createdAt | date:'short') : '—' }}
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- 🗓️ Timeline principale -->
+      <div class="timeline">
+
+        <div *ngFor="let d of days" class="day">
+          <div class="day-header">
+            <div>
+              <div class="day-label">
+                {{ d.day | date:'EEEE' }}
+              </div>
+              <div class="day-date">
+                {{ d.day | date:'d MMM' }}
+              </div>
+            </div>
+            <div class="day-badge">
+              {{ d.items.length }} exécution{{ d.items.length > 1 ? 's' : '' }}
+            </div>
+          </div>
+
+          <div class="runs">
+            <!-- 🔥 Chaque run a un ID pour highlight + scroll -->
+            <span *ngFor="let r of d.items"
+                  class="run-badge"
+                  [id]="'run-' + r.id">
+
+              <!-- Clic = ouvre les détails -->
+              <button type="button"
+                      class="chip"
+                      [ngClass]="{
+                        'ok':  r.status === 'SUCCESS',
+                        'ko':  r.status === 'FAILED',
+                        'run': r.status === 'RUNNING',
+                        'pd':  r.status === 'PENDING',
+                        'active': selectedRun?.id === r.id
+                      }"
+                      (click)="openDetails(r)">
+
+                <span class="chip-time">
+                  {{ r.startTime | date:'shortTime' }}
+                </span>
+
+                <span class="chip-divider"></span>
+
+                <span class="chip-flow" [title]="r.flowType">
+                  {{ r.flowType }}
+                </span>
+              </button>
+
+            </span>
+          </div>
+        </div>
+
+        <div *ngIf="!days.length" class="text-muted p-4 text-center">
+          Aucune exécution dans la période.
+        </div>
+      </div>
+
+    </div> <!-- /card-body -->
+  </div> <!-- /card -->
+</div>

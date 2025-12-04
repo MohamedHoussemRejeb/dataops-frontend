@@ -1,0 +1,188 @@
+<!-- Flow Map – template modernisé -->
+
+<div class="fm-page">
+  <!-- 🧭 HERO SOMBRE -->
+  <header class="fm-hero">
+    <div class="fm-hero__titles">
+      <div class="fm-hero__chip">Lineage</div>
+      <h1 class="fm-hero__title">Flow Map</h1>
+      <p class="fm-hero__subtitle">
+        Visualisation du flux amont / aval autour d’un dataset,
+        avec profondeur configurable.
+      </p>
+    </div>
+
+    <div class="fm-hero__meta">
+      <span class="fm-hero__pill" *ngIf="fromUrn; else fmNoDataset">
+        Dataset sélectionné
+        <span class="fm-hero__pill-urn mono">{{ fromUrn }}</span>
+      </span>
+
+      <ng-template #fmNoDataset>
+        <span class="fm-hero__pill fm-hero__pill--muted">
+          Aucun dataset sélectionné
+        </span>
+      </ng-template>
+    </div>
+  </header>
+
+  <!-- ⚠️ Message d’erreur global -->
+  <div *ngIf="error" class="fm-alert fm-alert--error">
+    {{ error }}
+  </div>
+
+  <!-- 🧩 Bloc filtres -->
+  <section class="fm-card fm-card--filters">
+    <div class="fm-card__head">
+      <h2>Paramètres du flow</h2>
+      <p>Choisis un dataset, la profondeur de navigation et la direction.</p>
+    </div>
+
+    <div class="fm-filters-grid">
+      <!-- Dataset -->
+      <div class="fm-field fm-field--wide">
+        <label class="fm-label">Dataset</label>
+        <select
+          class="fm-input"
+          [(ngModel)]="fromUrn"
+          (ngModelChange)="reload()"
+        >
+          <option [ngValue]="null">-- Sélectionner un dataset --</option>
+          <option *ngFor="let d of datasets" [ngValue]="d.urn">
+            {{ d.name || d.urn }}
+          </option>
+        </select>
+        <p class="fm-hint" *ngIf="!fromUrn">
+          Sélectionne un dataset pour afficher le flow map.
+        </p>
+        <p class="fm-hint mono" *ngIf="fromUrn">
+          URN : {{ fromUrn }}
+        </p>
+      </div>
+
+      <!-- Profondeur -->
+      <div class="fm-field">
+        <label class="fm-label">Profondeur</label>
+        <select
+          class="fm-input"
+          [(ngModel)]="depth"
+          (ngModelChange)="reload()"
+        >
+          <option [value]="1">1</option>
+          <option [value]="2">2</option>
+          <option [value]="3">3</option>
+        </select>
+        <p class="fm-hint">
+          Nombre de “sauts” autour du dataset (1–3).
+        </p>
+      </div>
+
+      <!-- Direction -->
+      <div class="fm-field">
+        <label class="fm-label">Direction</label>
+        <select
+          class="fm-input"
+          [(ngModel)]="direction"
+          (ngModelChange)="reload()"
+        >
+          <option value="downstream">Downstream (aval)</option>
+          <option value="upstream">Upstream (amont)</option>
+        </select>
+        <p class="fm-hint">
+          Choisis si tu analyses l’amont (sources) ou l’aval (consommateurs).
+        </p>
+      </div>
+    </div>
+
+    <!-- États de chargement -->
+    <div class="fm-state">
+      <span *ngIf="loading" class="fm-state__item">
+        Chargement du graphe…
+      </span>
+      <span *ngIf="!loading && graph && !graph.nodes.length" class="fm-state__item">
+        Aucun nœud pour cette configuration.
+      </span>
+    </div>
+  </section>
+
+  <!-- 🧵 Graphe -->
+  <section class="fm-card fm-card--graph">
+    <div class="fm-card__head fm-card__head--tight">
+      <h2>Visualisation du flow</h2>
+      <p *ngIf="graph">
+        {{ graph.nodes.length }} nœud(s) • {{ graph.edges.length }} lien(s)
+      </p>
+    </div>
+
+    <div class="fm-graph-wrapper" *ngIf="graph && graph.nodes.length && !loading; else fmEmpty">
+      <svg
+        [attr.width]="780"
+        [attr.height]="320"
+        class="fm-graph"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <!-- nodes -->
+        <ng-container *ngFor="let n of graph.nodes">
+          <g
+            class="fm-node"
+            [attr.transform]="
+              'translate(' + (n.level * 240 + 80) + ',' + (nodeY(n) * 60 + 40) + ')'
+            "
+          >
+            <rect
+              x="-70"
+              y="-18"
+              width="140"
+              height="36"
+              rx="8"
+              ry="8"
+              [attr.fill]="fill(n.type)"
+              stroke="#9ca3af"
+            ></rect>
+            <text
+              class="fm-node__label"
+              text-anchor="middle"
+              dominant-baseline="middle"
+            >
+              {{ n.label }}
+            </text>
+          </g>
+        </ng-container>
+
+        <!-- edges -->
+        <ng-container *ngFor="let e of graph.edges">
+          <line
+            class="fm-edge"
+            [attr.x1]="pt(e.from).x"
+            [attr.y1]="pt(e.from).y"
+            [attr.x2]="pt(e.to).x"
+            [attr.y2]="pt(e.to).y"
+            marker-end="url(#arrow)"
+          />
+        </ng-container>
+
+        <defs>
+          <marker
+            id="arrow"
+            markerWidth="10"
+            markerHeight="10"
+            refX="8"
+            refY="3"
+            orient="auto"
+          >
+            <path d="M0,0 L0,6 L9,3 z" fill="#64748b"></path>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+
+    <ng-template #fmEmpty>
+      <div class="fm-empty">
+        <span *ngIf="!fromUrn">Aucun dataset sélectionné.</span>
+        <span *ngIf="fromUrn && !loading && (!graph || !graph.nodes.length)">
+          Aucun flow disponible pour cette configuration.
+        </span>
+      </div>
+    </ng-template>
+  </section>
+</div>

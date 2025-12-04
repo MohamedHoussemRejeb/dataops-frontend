@@ -1,0 +1,211 @@
+<div class="container-fluid runs-compare" *ngIf="!loading">
+
+  <!-- HEADER / HERO -->
+  <header class="compare-header d-flex justify-content-between align-items-center mb-3">
+    <div class="compare-header__text">
+      <h4 class="mb-1">Analyse comparative des exécutions</h4>
+      <small class="text-muted-override">
+        Comparez deux runs ETL pour analyser les performances et les volumes traités.
+      </small>
+    </div>
+
+    <a routerLink="/runs" class="btn-return">
+      ← Retour à la liste des exécutions
+    </a>
+  </header>
+
+  <!-- PANNEAU A/B -->
+  <div class="row g-3 mb-3">
+
+    <!-- Run A -->
+    <div class="col-12 col-lg-6">
+      <div class="card compare-card shadow-sm h-100">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div>
+            <span class="badge rounded-pill me-2 compare-pill compare-pill-a">A</span>
+            <span class="fw-semibold">Exécution A</span>
+          </div>
+          <small class="text-muted d-none d-md-inline">Référence</small>
+        </div>
+
+        <div class="card-body">
+          <label class="form-label small text-muted mb-1">
+            Sélectionner un run de référence
+          </label>
+          <select class="form-select mb-3"
+                  [(ngModel)]="aId"
+                  (ngModelChange)="pickAId($event)">
+            <option value="">— choisir —</option>
+            <option *ngFor="let r of all" [value]="r.id">
+              {{ r.flowType }} • {{ r.startTime | date:'short' }}
+            </option>
+          </select>
+
+          <ng-container *ngIf="a; else emptyA">
+            <dl class="row mb-0 small compare-dl">
+              <dt class="col-5">Type</dt>
+              <dd class="col-7">{{ a?.flowType }}</dd>
+
+              <dt class="col-5">Statut</dt>
+              <dd class="col-7">{{ a?.status }}</dd>
+
+              <dt class="col-5">Début</dt>
+              <dd class="col-7">{{ a?.startTime | date:'short' }}</dd>
+
+              <dt class="col-5">Fin</dt>
+              <dd class="col-7">{{ a?.endTime   | date:'short' }}</dd>
+
+              <dt class="col-5">Durée</dt>
+              <dd class="col-7">{{ msToHuman(durMs(a)) }}</dd>
+
+              <dt class="col-5">Lignes (IN / OUT / ERROR)</dt>
+              <dd class="col-7">
+                {{ a?.rowsIn || 0 }} / {{ a?.rowsOut || 0 }} / {{ a?.rowsError || 0 }}
+              </dd>
+            </dl>
+
+            <div class="mono small text-muted mt-2">
+              {{ a?.message }}
+            </div>
+          </ng-container>
+
+          <ng-template #emptyA>
+            <div class="text-muted small">
+              Sélectionnez un run pour l’utiliser comme référence A.
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <!-- Run B -->
+    <div class="col-12 col-lg-6">
+      <div class="card compare-card shadow-sm h-100">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div>
+            <span class="badge rounded-pill me-2 compare-pill compare-pill-b">B</span>
+            <span class="fw-semibold">Exécution B</span>
+          </div>
+          <small class="text-muted d-none d-md-inline">Scénario à comparer</small>
+        </div>
+
+        <div class="card-body">
+          <label class="form-label small text-muted mb-1">
+            Sélectionner un run à comparer
+          </label>
+          <select class="form-select mb-3"
+                  [(ngModel)]="bId"
+                  (ngModelChange)="pickBId($event)">
+            <option value="">— choisir —</option>
+            <option *ngFor="let r of all" [value]="r.id">
+              {{ r.flowType }} • {{ r.startTime | date:'short' }}
+            </option>
+          </select>
+
+          <ng-container *ngIf="b; else emptyB">
+            <dl class="row mb-0 small compare-dl">
+              <dt class="col-5">Type</dt>
+              <dd class="col-7">{{ b?.flowType }}</dd>
+
+              <dt class="col-5">Statut</dt>
+              <dd class="col-7">{{ b?.status }}</dd>
+
+              <dt class="col-5">Début</dt>
+              <dd class="col-7">{{ b?.startTime | date:'short' }}</dd>
+
+              <dt class="col-5">Fin</dt>
+              <dd class="col-7">{{ b?.endTime   | date:'short' }}</dd>
+
+              <dt class="col-5">Durée</dt>
+              <dd class="col-7">{{ msToHuman(durMs(b)) }}</dd>
+
+              <dt class="col-5">Lignes (IN / OUT / ERROR)</dt>
+              <dd class="col-7">
+                {{ b?.rowsIn || 0 }} / {{ b?.rowsOut || 0 }} / {{ b?.rowsError || 0 }}
+              </dd>
+            </dl>
+
+            <div class="mono small text-muted mt-2">
+              {{ b?.message }}
+            </div>
+          </ng-container>
+
+          <ng-template #emptyB>
+            <div class="text-muted small">
+              Sélectionnez un run pour l’utiliser comme comparaison B.
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLEAU DIFF -->
+  <div class="card shadow-sm mb-3" *ngIf="a && b">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span class="fw-semibold">Synthèse des écarts</span>
+      <small class="text-muted">Δ = B – A</small>
+    </div>
+
+    <div class="card-body p-0">
+      <table class="table table-sm align-middle mb-0 compare-table">
+        <thead class="table-light">
+          <tr>
+            <th>Métrique</th>
+            <th>Run A</th>
+            <th>Run B</th>
+            <th>Δ (B – A)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Durée</td>
+            <td>{{ msToHuman(durMs(a)) }}</td>
+            <td>{{ msToHuman(durMs(b)) }}</td>
+            <td [class]="deltaClass(durMs(a), durMs(b), true)">
+              {{ msToHuman(delta(durMs(a), durMs(b))) }}
+            </td>
+          </tr>
+          <tr>
+            <td>Lignes IN</td>
+            <td>{{ a?.rowsIn || 0 }}</td>
+            <td>{{ b?.rowsIn || 0 }}</td>
+            <td [class]="deltaClass(a?.rowsIn, b?.rowsIn)">
+              {{ delta(a?.rowsIn, b?.rowsIn) }}
+            </td>
+          </tr>
+          <tr>
+            <td>Lignes OUT</td>
+            <td>{{ a?.rowsOut || 0 }}</td>
+            <td>{{ b?.rowsOut || 0 }}</td>
+            <td [class]="deltaClass(a?.rowsOut, b?.rowsOut)">
+              {{ delta(a?.rowsOut, b?.rowsOut) }}
+            </td>
+          </tr>
+          <tr>
+            <td>Lignes ERROR</td>
+            <td>{{ a?.rowsError || 0 }}</td>
+            <td>{{ b?.rowsError || 0 }}</td>
+            <td [class]="deltaClass(a?.rowsError, b?.rowsError, true)">
+              {{ delta(a?.rowsError, b?.rowsError) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="card shadow-sm" *ngIf="a && b">
+    <div class="card-header">
+      Visualisation des volumes traités
+    </div>
+    <div class="card-body compare-chart-wrapper">
+      <canvas baseChart
+              [type]="'bar'"
+              [data]="barsData"
+              [options]="barsOpts">
+      </canvas>
+    </div>
+  </div>
+</div>

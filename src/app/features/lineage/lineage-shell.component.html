@@ -1,0 +1,66 @@
+<div class="ls-page">
+  <!-- 🧭 HERO sombre -->
+  <header class="ls-hero">
+    <div class="ls-hero__titles">
+      <div class="ls-hero__chip">Lineage</div>
+      <h1 class="ls-hero__title">Data Lineage</h1>
+      <p class="ls-hero__subtitle">
+        Explore les différentes vues de lineage&nbsp;: graphe complet, lineage colonne et
+        vue de flux.
+      </p>
+    </div>
+
+    <div class="ls-hero__meta">
+      <span class="ls-hero__hint">
+        Utilise les onglets pour basculer entre les perspectives.
+      </span>
+    </div>
+  </header>
+
+  <!-- 📦 Carte avec barre d’onglets + contenu -->
+  <section class="ls-card">
+    <!-- Barre d'onglets pilotée par le router -->
+    <nav mat-tab-nav-bar class="ls-tabs">
+      <a
+        mat-tab-link
+        routerLink="graph"
+        #graphRla="routerLinkActive"
+        routerLinkActive
+        [routerLinkActiveOptions]="{ exact: true }"
+        [active]="graphRla.isActive"
+        ariaCurrentWhenActive="page"
+      >
+        Graph
+      </a>
+
+      <a
+        mat-tab-link
+        routerLink="columns"
+        #colsRla="routerLinkActive"
+        routerLinkActive
+        [routerLinkActiveOptions]="{ exact: true }"
+        [active]="colsRla.isActive"
+        ariaCurrentWhenActive="page"
+      >
+        Columns
+      </a>
+
+      <a
+        mat-tab-link
+        routerLink="flow"
+        #flowRla="routerLinkActive"
+        routerLinkActive
+        [routerLinkActiveOptions]="{ exact: true }"
+        [active]="flowRla.isActive"
+        ariaCurrentWhenActive="page"
+      >
+        Flow
+      </a>
+    </nav>
+
+    <!-- Contenu des sous-routes -->
+    <div class="ls-outlet">
+      <router-outlet></router-outlet>
+    </div>
+  </section>
+</div>

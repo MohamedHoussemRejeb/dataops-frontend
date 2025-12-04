@@ -1,0 +1,121 @@
+<div class="login-page d-flex flex-row align-items-center min-vh-100">
+  <c-container breakpoint="md">
+    <c-row class="justify-content-center">
+      <c-col lg="6" xl="5">
+        <c-card-group>
+          <c-card class="p-4 shadow-sm rounded-4">
+            <c-card-body>
+
+              <!-- Logo TALYS centré -->
+              <div class="text-center mb-3">
+                <img
+                  src="assets/images/ssmacarontalys.png"
+                  alt="Logo Talys"
+                  style="max-width: 260px; height: auto;"
+                />
+              </div>
+
+              <!-- Slogan / phrase contextuelle -->
+              <div class="text-center mb-4">
+                <p class="mb-1 fw-semibold text-primary-emphasis">
+                  Plateforme DataOps & Gouvernance
+                </p>
+                <p class="mb-0 text-body-secondary small">
+                  Observabilité en temps réel, supervision des flux
+                  & automatisation des workflows.
+                </p>
+              </div>
+
+              <!-- Formulaire de Login -->
+              <form cForm (ngSubmit)="login()">
+                <h1 class="mb-2">Connexion</h1>
+                <p class="text-body-secondary mb-4">
+                  Accédez à votre espace DataOps sécurisé.
+                </p>
+
+                <!-- Email -->
+                <c-input-group class="mb-3">
+                  <span cInputGroupText>
+                    <svg cIcon name="cilUser"></svg>
+                  </span>
+                  <input
+                    cFormControl
+                    type="email"
+                    name="email"
+                    [(ngModel)]="email"
+                    placeholder="Adresse e-mail"
+                    autocomplete="username"
+                    required
+                  />
+                </c-input-group>
+
+                <!-- Mot de passe + Show/Hide -->
+                <c-input-group class="mb-3">
+                  <span cInputGroupText>
+                    <svg cIcon name="cilLockLocked"></svg>
+                  </span>
+
+                  <input
+                    cFormControl
+                    [type]="showPassword ? 'text' : 'password'"
+                    name="password"
+                    [(ngModel)]="password"
+                    placeholder="Mot de passe"
+                    autocomplete="current-password"
+                    required
+                  />
+
+                  <button
+                    cButton
+                    type="button"
+                    color="light"
+                    class="border-0 px-3"
+                    (click)="togglePasswordVisibility()"
+                    aria-label="Afficher / masquer le mot de passe"
+                  >
+                    <svg
+                      cIcon
+                      [name]="showPassword ? 'cilEyeSlash' : 'cilEye'"
+                    ></svg>
+                  </button>
+                </c-input-group>
+
+                <!-- Message d'erreur -->
+                <div *ngIf="error" class="alert alert-danger py-2 mb-3" role="alert">
+                  {{ error }}
+                </div>
+
+                <!-- Bouton + loader -->
+                <c-row>
+                  <c-col xs="12" class="text-center">
+                    <button
+                      cButton
+                      type="submit"
+                      class="px-4 rounded-pill login-btn"
+                      [disabled]="submitting"
+                    >
+                      <span
+                        *ngIf="submitting"
+                        class="spinner-border spinner-border-sm me-2"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
+                      <span>{{ submitting ? 'Connexion...' : 'Se connecter' }}</span>
+                    </button>
+                  </c-col>
+                </c-row>
+              </form>
+
+              <!-- Footer -->
+              <hr class="my-4" />
+              <div class="text-center text-body-secondary small">
+                © 2025 Plateforme DataOps — TALYS
+              </div>
+
+            </c-card-body>
+          </c-card>
+        </c-card-group>
+      </c-col>
+    </c-row>
+  </c-container>
+</div>

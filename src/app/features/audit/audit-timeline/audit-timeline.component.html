@@ -1,0 +1,147 @@
+<!-- src/app/features/audit/audit-timeline/audit-timeline.component.html -->
+
+<div class="audit-page">
+
+  <!-- 🧭 HERO SOMBRE -->
+  <section class="audit-hero">
+    <div class="audit-hero__left">
+      <div class="audit-hero__chip">Audit · Timeline</div>
+      <h2 class="audit-hero__title">Audit &amp; activité</h2>
+      <p class="audit-hero__subtitle">
+        Historique des actions utilisateurs, des runs et des fichiers,
+        filtrable par type, période et texte libre.
+      </p>
+    </div>
+
+    <div class="audit-hero__right">
+      <div class="audit-hero__counter">
+        <span class="audit-hero__counter-label">Événements affichés</span>
+        <span class="audit-hero__counter-value">
+          {{ filtered().length }}
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 🧰 FILTRES (CARTE BLANCHE) -->
+  <section class="audit-filters-card">
+    <div class="filters-row">
+      <div class="filters-main">
+        <div class="field">
+          <label class="field-label">Recherche</label>
+          <div class="field-control field-control--icon">
+            <span class="field-icon">🔍</span>
+            <input
+              type="search"
+              class="field-input"
+              placeholder="Rechercher (user, run, fichier, commentaire…)"
+              [ngModel]="q()"
+              (ngModelChange)="q.set($event)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="filters-side">
+        <div class="field">
+          <label class="field-label">Type</label>
+          <select
+            class="field-input"
+            [ngModel]="kind()"
+            (ngModelChange)="kind.set($event)"
+          >
+            <option value="all">Tous types</option>
+            <option *ngFor="let k of kinds" [value]="k">
+              {{ labelKind(k) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Du</label>
+          <input
+            type="date"
+            class="field-input"
+            [ngModel]="from()"
+            (ngModelChange)="from.set($event)"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field-label">Au</label>
+          <input
+            type="date"
+            class="field-input"
+            [ngModel]="to()"
+            (ngModelChange)="to.set($event)"
+          />
+        </div>
+
+        <div class="field field--button">
+          <button
+            type="button"
+            class="btn btn--ghost"
+            (click)="exportCsv()"
+          >
+            Exporter CSV
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 🕒 TIMELINE (CARTE BLANCHE) -->
+  <section class="audit-card">
+    <header class="audit-card__head">
+      <div>
+        <h3 class="audit-card__title">Activité chronologique</h3>
+        <p class="audit-card__subtitle">
+          Regroupée par journée, du plus récent au plus ancien.
+        </p>
+      </div>
+    </header>
+
+    <div class="audit-card__body">
+      <section class="audit-timeline" *ngIf="groups().length; else empty">
+        <div class="day" *ngFor="let g of groups()">
+          <div class="day__header">
+            <div class="day__label">{{ g.label }}</div>
+            <div class="day__count">{{ g.items.length }} événement(s)</div>
+          </div>
+
+          <div class="day__items">
+            <article class="item" *ngFor="let ev of g.items">
+              <div class="item__axis">
+                <span class="dot" [ngClass]="ev.kind"></span>
+                <span class="axis-line"></span>
+              </div>
+
+              <div class="item__card">
+                <div class="item__line1">
+                  <span class="kind kind--{{ ev.kind }}">
+                    {{ labelKind(ev.kind) }}
+                  </span>
+                  <span class="user">{{ ev.user.name }}</span>
+                  <span class="time">
+                    {{ ev.at | date: 'shortTime' }}
+                  </span>
+                </div>
+
+                <div class="item__line2" *ngIf="desc(ev)">
+                  {{ desc(ev) }}
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- EMPTY STATE -->
+      <ng-template #empty>
+        <div class="audit-empty">
+          Aucune activité pour les filtres sélectionnés.
+        </div>
+      </ng-template>
+    </div>
+  </section>
+</div>

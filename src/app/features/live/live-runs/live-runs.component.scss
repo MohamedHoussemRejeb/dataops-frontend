@@ -1,0 +1,207 @@
+.live-card {
+  border-radius: 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+/* ===== HEADER ===== */
+
+.live-header {
+  background: linear-gradient(
+    135deg,
+    #212631 0%,
+    #1e293b 45%,
+    #020617 100%
+  );
+  color: #e5e7eb;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.live-header h5 {
+  font-weight: 600;
+}
+
+.live-header .header-sub {
+  color: rgba(226, 232, 240, 0.85) !important;
+}
+
+.live-header__right {
+  justify-content: flex-end;
+}
+
+.live-header .btn-group .btn,
+.live-header .btn-group .btn:focus {
+  border-radius: 999px;
+  font-size: 0.78rem;
+}
+
+/* Légende statuts */
+
+.live-legend {
+  font-size: 0.75rem;
+  gap: 0.75rem;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+/* Couleurs cohérentes avec Bootstrap mais customisées */
+.legend-ok {
+  background: #16a34a33;
+  border-color: #22c55e;
+}
+
+.legend-running {
+  background: #fbbf2433;
+  border-color: #f59e0b;
+}
+
+.legend-fail {
+  background: #ef444433;
+  border-color: #ef4444;
+}
+
+.legend-dry {
+  background: #0ea5e933;
+  border-color: #0ea5e9;
+}
+
+/* Auto-refresh */
+
+.live-refresh {
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(22, 163, 74, 0.12);
+  color: #bbf7d0;
+  border: 1px solid rgba(22, 163, 74, 0.6);
+}
+
+.refresh-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.35);
+}
+
+/* pour les petits écrans on empile mieux la légende + boutons */
+@media (max-width: 768px) {
+  .live-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .live-header__right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .live-launch {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+/* ===== BODY / RUNS ===== */
+
+.empty-state {
+  color: #4b5563;
+}
+
+.empty-icon {
+  font-size: 2.1rem;
+}
+
+.run-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 992px) {
+  .run-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.run-card {
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.run-card .card-body {
+  padding: 0.9rem 1rem 1rem;
+}
+
+.run-flow {
+  font-size: 0.95rem;
+}
+
+/* progress bar */
+.live-progress {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background-color: #e5e7eb;
+}
+
+.live-progress .progress-bar {
+  transition: width 0.6s ease;
+}
+
+/* ===== LOGS ===== */
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', monospace;
+}
+
+.logs {
+  max-height: 220px;
+  overflow: auto;
+  background: #020617;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  color: #e5e7eb;
+}
+
+.logs-header {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.4rem;
+}
+
+.log-line {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  padding: 0.1rem 0;
+  display: flex;
+  align-items: center;
+}
+
+.log-ts {
+  color: #9ca3af;
+  min-width: 56px;
+}
+
+.log-msg {
+  flex: 1;
+  word-break: break-word;
+}

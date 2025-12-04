@@ -1,0 +1,196 @@
+<!-- Loader -->
+<app-state-block *ngIf="loading()" icon="⏳" [title]="'Chargement…'"></app-state-block>
+
+<!-- Erreur -->
+<app-state-block
+  *ngIf="!loading() && error()"
+  icon="⚠️"
+  [title]="'Erreur'"
+  [message]="error() || ''"
+  [actionLabel]="'Réessayer'"
+  [action]="reload">
+</app-state-block>
+
+<!-- Contenu -->
+<div *ngIf="!loading() && !error() && data() as d">
+  <div class="d-flex align-items-center mb-2">
+    <h5 class="mb-0">{{ d.name }}</h5>
+  </div>
+
+  <div class="text-muted mb-3">{{ d.description || '—' }}</div>
+
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div>
+        <strong>Owner</strong><br />
+        <small>{{ d.owner?.name || '—' }}</small>
+        <small class="text-muted ms-1">{{ d.owner?.email || '' }}</small>
+      </div>
+
+      <div class="mt-2"><strong>Domaine</strong><br />{{ d.domain || '—' }}</div>
+
+      <div class="mt-2"><strong>Tags</strong><br />{{ (d.tags || []).join(' · ') || '—' }}</div>
+
+      <div class="mt-2">
+        <strong>Gouvernance</strong><br />
+        <app-sensitivity-badge [value]="getSensitivity(d)"></app-sensitivity-badge>
+        <app-legal-badges class="ms-2" [tags]="getLegal(d)"></app-legal-badges>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <!-- Dernier chargement -->
+      <div class="card p-3">
+        <div><strong>Dernier chargement</strong></div>
+        <div class="small text-muted">
+          Statut: {{ d.lastLoad?.status || '—' }} •
+          Durée: {{ d.lastLoad?.durationSec || 0 }}s
+        </div>
+
+        <div class="mt-3 d-flex gap-2 flex-wrap">
+          <a class="btn btn-outline-primary btn-sm" [routerLink]="['/lineage', d.id]">
+            Lineage
+          </a>
+
+          <a class="btn btn-outline-secondary btn-sm"
+             [routerLink]="['/column-profile']"
+             [queryParams]="{ urn: d.urn || d.id }">
+            Profiling
+          </a>
+
+          <!-- 🔗 Nouveau bouton : admin colonnes + lineage colonne -->
+          <button
+            type="button"
+            class="btn btn-outline-warning btn-sm"
+            (click)="goToColumnAdmin()">
+            Colonnes &amp; lineage
+          </button>
+        </div>
+      </div>
+            <!-- 🔍 Nouvelle carte : Flow Map (lineage dataset) -->
+      <div class="card mt-3" *ngIf="d.urn">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>Flow Map (Lineage)</span>
+          <small class="text-muted">
+            Vue graphique autour de <code>{{ d.urn }}</code>
+          </small>
+        </div>
+        <div class="card-body">
+          <app-flow-map [fromUrn]="d.urn"></app-flow-map>
+        </div>
+      </div>
+
+      <!-- ⭐ Nouvelle carte : SLA JSON avancé -->
+      <div class="card mt-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>SLA (JSON avancé)</span>
+          <small class="text-muted">
+            Configuration SLA stockée dans le backend (champ <code>sla_config</code>).
+          </small>
+        </div>
+        <div class="card-body">
+          <div *ngIf="slaLoading()" class="text-muted mb-2">
+            Chargement de la configuration SLA…
+          </div>
+
+          <textarea
+            class="form-control font-monospace"
+            rows="10"
+            [ngModel]="slaJson()"
+            (ngModelChange)="onSlaJsonChange($event)">
+          </textarea>
+
+          <div *ngIf="slaJsonError()" class="alert alert-danger mt-2">
+            {{ slaJsonError() }}
+          </div>
+
+          <button
+            class="btn btn-primary btn-sm mt-2"
+            (click)="saveSlaJson()"
+            [disabled]="slaSaving() || !!slaJsonError()">
+            Enregistrer SLA
+          </button>
+        </div>
+      </div>
+
+      <!-- Colonnes + lien vers la page Column Profile -->
+      <div class="card mt-3" *ngIf="getColumns(d)?.length">
+        <div class="card-header">Colonnes</div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Type</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of getColumns(d); trackBy: trackCol">
+                <td><code>{{ c.name }}</code></td>
+                <td>{{ c.type || c.dataType || '—' }}</td>
+                <td class="text-end">
+                  <a
+                    class="btn btn-outline-secondary btn-sm"
+                    [routerLink]="['/column-profile']"
+                    [queryParams]="{ urn: d.urn || d.id, col: c.name }"
+                  >
+                    Voir profil
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Champs personnalisés + Sélecteur de template -->
+      <div class="card mt-3" *ngIf="(settings.settings().customFields?.length || 0) > 0">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>Champs personnalisés</span>
+          <small class="text-muted">
+            {{ (settings.settings().customFields?.length || 0) }} champs de base
+            <ng-container *ngIf="selectedTpl">
+              + {{ (tplFields()?.length || 0) }} via template
+            </ng-container>
+          </small>
+        </div>
+
+        <div class="card-body">
+          <!-- Sélecteur de template -->
+          <div class="mb-3" *ngIf="(settings.settings().templates?.length || 0) > 0">
+            <label class="form-label">Appliquer un template</label>
+            <div class="d-flex gap-2 align-items-center">
+              <select class="form-select form-select-sm" style="max-width:220px"
+                      [(ngModel)]="selectedTpl"
+                      (ngModelChange)="applyTemplate($event)">
+                <option [ngValue]="null">—</option>
+                <option *ngFor="let t of (settings.settings().templates || [])" [ngValue]="t.id">
+                  {{ t.name }}
+                </option>
+              </select>
+
+              <button type="button"
+                      class="btn btn-outline-secondary btn-sm"
+                      *ngIf="selectedTpl"
+                      (click)="clearTemplate()">
+                Réinitialiser
+              </button>
+
+              <small class="text-muted">
+                Fusionne les champs du template avec les champs globaux.
+              </small>
+            </div>
+          </div>
+
+          <!-- Formulaire avec champs fusionnés (globaux + template) -->
+          <app-custom-fields-form
+            [fields]="mergedFields()"
+            [value]="customVals()"
+            (save)="onSaveCustom($event)">
+          </app-custom-fields-form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

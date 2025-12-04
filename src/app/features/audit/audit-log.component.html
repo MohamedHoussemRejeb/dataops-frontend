@@ -1,0 +1,128 @@
+<!-- src/app/features/audit/audit-log.component.html -->
+<div class="audit">
+
+  <div class="head d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Audit / Activité</h3>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-3 p-3">
+    <div class="row g-2">
+      <div class="col-md-2">
+        <label class="form-label">Utilisateur</label>
+        <input class="form-control form-control-sm" [(ngModel)]="actor" />
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Action</label>
+        <input class="form-control form-control-sm" [(ngModel)]="action" placeholder="CONFIG_UPDATE..." />
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Ressource</label>
+        <input class="form-control form-control-sm" [(ngModel)]="resourceType" placeholder="DATASET..." />
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">ID ressource</label>
+        <input class="form-control form-control-sm" [(ngModel)]="resourceId" />
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">De</label>
+        <input type="datetime-local" class="form-control form-control-sm" [(ngModel)]="fromTs" />
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">À</label>
+        <input type="datetime-local" class="form-control form-control-sm" [(ngModel)]="toTs" />
+      </div>
+    </div>
+
+    <div class="mt-2 d-flex gap-2">
+      <button class="btn btn-sm btn-primary" (click)="applyFilters()">Filtrer</button>
+      <button class="btn btn-sm btn-outline-secondary" (click)="clearFilters()">Réinitialiser</button>
+    </div>
+  </div>
+
+  <!-- Errors / loading -->
+  <div *ngIf="error()" class="alert alert-danger">
+    {{ error() }}
+  </div>
+
+  <div *ngIf="loading()" class="mb-2">
+    <span class="placeholder col-12" style="height:6px; display:block;"></span>
+  </div>
+
+  <!-- Table -->
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <th>Utilisateur</th>
+            <th>Action</th>
+            <th>Type ressource</th>
+            <th>Ressource</th>
+            <th>IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of logs()" (click)="openDetails(log)" style="cursor: pointer;">
+            <td>{{ log.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+            <td>{{ log.actor }}</td>
+            <td><code>{{ log.action }}</code></td>
+            <td>{{ log.resourceType }}</td>
+            <td class="text-truncate" style="max-width: 280px;">
+              {{ log.resourceId }}
+            </td>
+            <td>{{ log.ipAddress }}</td>
+          </tr>
+          <tr *ngIf="!loading() && logs().length === 0">
+            <td colspan="6" class="text-center text-muted py-3">
+              Aucun log trouvé.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal détails (simple) -->
+  <div class="modal-backdrop" *ngIf="selectedLog()"></div>
+  <div class="audit-modal" *ngIf="selectedLog() as log">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+          <strong>{{ log.action }}</strong>
+          <div class="small text-muted">{{ log.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}</div>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary" (click)="closeDetails()">Fermer</button>
+      </div>
+      <div class="card-body">
+        <p><strong>Utilisateur :</strong> {{ log.actor }}</p>
+        <p><strong>Ressource :</strong> {{ log.resourceType }} / {{ log.resourceId }}</p>
+        <p><strong>IP :</strong> {{ log.ipAddress }}</p>
+        <p><strong>User-Agent :</strong> {{ log.userAgent }}</p>
+
+        <hr />
+
+        <h6>Diff</h6>
+        <div *ngIf="getDiffKeys(log).length === 0" class="text-muted small">
+          Aucun diff disponible.
+        </div>
+        <div *ngFor="let key of getDiffKeys(log)" class="mb-2">
+          <div class="small fw-bold">{{ key }}</div>
+          <div class="diff-field">
+            <div class="old small">
+              <span class="badge bg-danger-subtle text-danger me-1">old</span>
+              <code>{{ log.payloadDiff?.[key]?.old | json }}</code>
+            </div>
+            <div class="new small">
+              <span class="badge bg-success-subtle text-success me-1">new</span>
+              <code>{{ log.payloadDiff?.[key]?.new | json }}</code>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>

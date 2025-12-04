@@ -1,0 +1,178 @@
+:host {
+  display: block;
+}
+
+/* ===== Carte globale ======================================= */
+
+.card {
+  border-radius: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+}
+
+/* ===== Header ============================================== */
+
+.card-header {
+  background: linear-gradient(135deg, #020617, #020824);
+  color: #f9fafb;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.6);
+}
+
+.card-header h5 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.card-header .btn-group .btn {
+  font-size: 0.78rem;
+  border-radius: 999px;
+  padding-inline: 0.75rem;
+}
+
+.card-header .btn-group .btn + .btn {
+  margin-left: 0.25rem;
+}
+
+/* ===== Corps de carte ====================================== */
+
+.card-body {
+  padding: 1rem 1.1rem 0.6rem;
+}
+
+/* Loader centré */
+[role='status'] .spinner-border {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+/* ===== Filtres ============================================= */
+
+.filters {
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.9rem;
+  background: #f9fafb;
+  border: 1px solid rgba(209, 213, 219, 0.8);
+}
+
+.filters .form-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.filters .form-select,
+.filters .form-control {
+  max-width: 100%;
+  font-size: 0.85rem;
+}
+
+.filters .btn {
+  font-size: 0.82rem;
+}
+
+/* ===== Tableau ============================================= */
+
+.table-responsive {
+  border-radius: 0.9rem;
+  border: 1px solid rgba(209, 213, 219, 0.8);
+  overflow: hidden;
+  margin-top: 0.75rem;
+}
+
+table[mat-table] thead th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  white-space: nowrap;
+  background-color: #f9fafb;
+}
+
+table[mat-table] tbody td {
+  font-size: 0.85rem;
+  vertical-align: middle;
+}
+
+/* survol des lignes */
+table[mat-table] tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* lignes colorées selon le statut (si ngClass appliqué sur mat-row) */
+.tr-failed {
+  --bs-table-bg: #fff5f5; /* léger rouge clair */
+}
+
+.tr-running {
+  --bs-table-bg: #fffbea; /* léger jaune clair */
+}
+
+/* Badges de statut */
+.badge {
+  letter-spacing: 0.2px;
+  font-size: 0.75rem;
+}
+
+/* Boutons actions dans la dernière colonne */
+td.col-actions,
+.text-end {
+  white-space: nowrap;
+}
+
+td .btn-sm {
+  font-size: 0.78rem;
+  border-radius: 999px;
+}
+
+/* Checkbox de sélection */
+td input[type='checkbox'] {
+  margin-right: 0.4rem;
+}
+
+/* ===== Paginator =========================================== */
+
+.card-footer {
+  border-top: 1px solid rgba(209, 213, 219, 0.7);
+}
+
+.runs-paginator {
+  font-size: 0.8rem;
+}
+
+/* ===== Toast succès ======================================== */
+
+.toast-container .toast {
+  border-radius: 0.9rem;
+  box-shadow: 0 10px 24px rgba(22, 163, 74, 0.35);
+}
+
+/* ===== Overlays Angular Material =========================== */
+
+.mat-mdc-select-panel,
+.mat-mdc-menu-panel,
+.mat-mdc-autocomplete-panel,
+.mat-mdc-datepicker-content {
+  background-color: var(--cui-card-bg, #fff) !important;
+  color: var(--cui-body-color, #212529) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+/* S'assurer que les overlays passent devant l’entête CoreUI */
+.cdk-overlay-container {
+  z-index: 1200; /* header CoreUI ~ 1020–1100 */
+}
+
+/* Optionnel : style des chips/boutons du modal */
+.chip-toggle .mdc-button__label {
+  white-space: nowrap;
+}
+
+.chip-toggle.mdc-button--outlined {
+  background: var(--cui-body-bg, #fff);
+  border-color: rgba(0, 0, 0, 0.12);
+}

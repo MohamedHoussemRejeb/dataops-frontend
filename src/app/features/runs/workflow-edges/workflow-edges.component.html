@@ -1,0 +1,239 @@
+<!-- src/app/features/runs/workflow-edges/workflow-edges.component.html -->
+
+<div class="wf-edges-page container-fluid py-4">
+
+  <!-- HEADER BAND -->
+  <div class="wf-header text-center mb-4">
+    <div class="wf-chip mx-auto">Workflow Engine</div>
+    <h3 class="mb-1">Dépendances entre jobs</h3>
+    <p class="mb-0">
+      Définis quelles exécutions ETL déclenchent automatiquement d’autres jobs.
+    </p>
+
+    <div class="d-flex justify-content-center gap-2 mt-3">
+      <button
+        type="button"
+        class="btn btn-ghost-sm"
+        (click)="reload()"
+        [disabled]="loading()"
+      >
+        ↻ Recharger
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-primary btn-sm"
+        (click)="newEdge()"
+      >
+        + Ajouter une dépendance
+      </button>
+    </div>
+  </div>
+
+  <!-- ALERTS -->
+  <div class="wf-alert-zone mb-3">
+    <div *ngIf="error()" class="alert alert-danger text-center">
+      {{ error() }}
+    </div>
+
+    <div *ngIf="loading()" class="alert alert-info text-center">
+      Chargement des dépendances de workflow…
+    </div>
+  </div>
+
+
+  <!-- ======================================= -->
+  <!-- 🔷  DÉTAILS DE LA RÈGLE (FORMULAIRE)   -->
+  <!-- ======================================= -->
+
+  <div class="wf-section text-center mb-4">
+    <h4 class="wf-section-title mb-3">Détails de la règle</h4>
+  </div>
+
+  <div class="d-flex justify-content-center mb-5">
+    <div class="card wf-card" style="width: 600px; max-width: 100%;">
+      <div class="card-body" *ngIf="editing() as edge; else hint">
+        <form (ngSubmit)="save()">
+          
+          <div class="mb-3 text-start">
+            <label class="form-label">From job (source)</label>
+            <input
+              type="text"
+              class="form-control"
+              [ngModel]="edge.fromJob"
+              (ngModelChange)="onEditingChange('fromJob', $event)"
+              name="fromJob"
+              required
+            />
+            <div class="form-text">
+              Exemple : <code>COCACOLA_VIAPOST_INTEGRATIONARTICLE</code>
+            </div>
+          </div>
+
+          <div class="mb-3 text-start">
+            <label class="form-label">To job (ciblé)</label>
+            <input
+              type="text"
+              class="form-control"
+              [ngModel]="edge.toJob"
+              (ngModelChange)="onEditingChange('toJob', $event)"
+              name="toJob"
+              required
+            />
+            <div class="form-text">
+              Job déclenché automatiquement après le job source.
+            </div>
+          </div>
+
+          <div class="mb-2 form-check form-switch text-start">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="enabledSwitch"
+              [ngModel]="edge.enabled"
+              (ngModelChange)="onEditingChange('enabled', $event)"
+              name="enabled"
+            />
+            <label class="form-check-label" for="enabledSwitch">
+              Règle active
+            </label>
+          </div>
+
+          <div class="mb-3 form-check form-switch text-start">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="successSwitch"
+              [ngModel]="edge.onSuccessOnly"
+              (ngModelChange)="onEditingChange('onSuccessOnly', $event)"
+              name="onSuccessOnly"
+            />
+            <label class="form-check-label" for="successSwitch">
+              Déclencher uniquement si le précédent run = <strong>SUCCESS</strong>
+            </label>
+          </div>
+
+          <div class="d-flex justify-content-between mt-3">
+            <button
+              type="button"
+              class="btn btn-outline-secondary btn-sm"
+              (click)="cancel()"
+              [disabled]="saving()"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary btn-sm"
+              [disabled]="saving()"
+            >
+              {{ saving() ? 'Enregistrement…' : 'Enregistrer' }}
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+      <ng-template #hint>
+        <div class="card-body text-center text-muted">
+          Sélectionne une dépendance ou clique sur
+          <strong>« Ajouter une dépendance »</strong> pour en créer une nouvelle.
+        </div>
+      </ng-template>
+    </div>
+  </div>
+
+
+
+
+  <!-- ======================================= -->
+  <!-- 🔶  RÈGLES DE DÉPENDANCE (TABLEAU)     -->
+  <!-- ======================================= -->
+
+  <div class="wf-section text-center mb-3">
+    <h4 class="wf-section-title mb-3">Règles de dépendance</h4>
+  </div>
+
+  <div class="card wf-card mx-auto" style="max-width: 1200px;">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <div>
+        <strong>Liste des règles</strong>
+        <div class="text-muted small">
+          FROM_JOB → TO_JOB
+        </div>
+      </div>
+
+      <div class="input-group input-group-sm" style="max-width: 260px;">
+        <span class="input-group-text">Recherche</span>
+        <input
+          type="search"
+          class="form-control"
+          placeholder="Nom de job…"
+          [ngModel]="q()"
+          (ngModelChange)="q.set($event)"
+        />
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 table-hover align-middle">
+          <thead>
+            <tr>
+              <th style="width: 32%;">From job</th>
+              <th style="width: 32%;">To job</th>
+              <th style="width: 12%;">Activé</th>
+              <th style="width: 14%;">Condition</th>
+              <th style="width: 10%;" class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of filteredEdges()">
+              <td><code>{{ e.fromJob }}</code></td>
+              <td><code>{{ e.toJob }}</code></td>
+
+              <td>
+                <span
+                  class="wf-pill"
+                  [class.wf-pill-on]="e.enabled"
+                  [class.wf-pill-off]="!e.enabled"
+                  (click)="toggleEnabled(e)"
+                >
+                  <span class="dot"></span>
+                  {{ e.enabled ? 'ON' : 'OFF' }}
+                </span>
+              </td>
+
+              <td>
+                <span
+                  class="wf-pill-cond"
+                  [class.wf-pill-success]="e.onSuccessOnly"
+                  [class.wf-pill-always]="!e.onSuccessOnly"
+                  (click)="toggleOnSuccess(e)"
+                >
+                  {{ e.onSuccessOnly ? 'SUCCESS uniquement' : 'Toujours' }}
+                </span>
+              </td>
+
+              <td class="text-end">
+                <button type="button" class="btn btn-outline-primary btn-xs me-1" (click)="edit(e)">
+                  Éditer
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-xs" (click)="remove(e)">
+                  Suppr.
+                </button>
+              </td>
+            </tr>
+
+            <tr *ngIf="!filteredEdges().length && !loading()">
+              <td colspan="5" class="text-center text-muted py-3">
+                Aucune dépendance configurée pour le moment.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>

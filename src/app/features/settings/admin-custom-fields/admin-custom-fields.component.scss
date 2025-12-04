@@ -1,0 +1,302 @@
+.admin-custom-fields {
+  // ====== Page header ======
+  .acf-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem 0.75rem 0.25rem;
+    border-radius: 1rem;
+    background: radial-gradient(circle at top left, #f2f5ff 0, #ffffff 40%, #f7f9fc 100%);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+  }
+  .acf-subtext {
+  color: #8a8fa6; /* gris premium */
+}
+
+  .acf-badge-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #3b82f6, #22c55e);
+    box-shadow: 0 0 0 4px rgba(33, 38, 49, 0.15);
+    display: inline-block;
+  }
+
+  .acf-header-stats {
+    .acf-stat-pill {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-end;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.03);
+      border: 1px dashed rgba(148, 163, 184, 0.6);
+
+      .label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6b7280;
+      }
+
+      .value {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #111827;
+      }
+    }
+  }
+
+  // ====== Cards ======
+  .acf-card {
+    border-radius: 1rem;
+    border: 1px solid rgba(33, 38, 49, 0.06);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+  }
+
+  .acf-card-header {
+    background: linear-gradient(135deg, #212631, #111827);
+    color: #e5e7eb;
+    padding: 0.75rem 1rem 0.6rem;
+    border-bottom: none;
+
+    h6 {
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+    }
+
+    small {
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+  }
+
+  .acf-badge-count {
+    background: rgba(33, 38, 49, 0.9);
+    color: #e5e7eb;
+    border: 1px solid rgba(148, 163, 184, 0.7);
+    font-size: 0.7rem;
+    padding-inline: 0.6rem;
+  }
+
+  .acf-card-body {
+    padding: 1rem 1rem 1.1rem;
+  }
+
+  // ====== Tables ======
+  .acf-table-wrapper {
+    border-radius: 0.75rem;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    overflow: hidden;
+    background: #ffffff;
+
+    table {
+      margin-bottom: 0;
+
+      thead {
+        background: #f3f4f6;
+
+        th {
+          font-size: 0.72rem;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: #6b7280;
+          border-bottom-width: 1px;
+        }
+      }
+
+      tbody tr:hover {
+        background: #f9fafb;
+      }
+
+      td {
+        font-size: 0.85rem;
+        vertical-align: middle;
+      }
+    }
+  }
+
+  .acf-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+      monospace;
+  }
+
+  .key-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 0.78rem;
+  }
+
+  .acf-options-cell {
+    min-width: 120px;
+  }
+
+  .acf-option-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    background: #f3f4ff;
+    color: #4338ca;
+    margin-right: 0.25rem;
+    margin-bottom: 0.15rem;
+    border: 1px solid rgba(99, 102, 241, 0.35);
+  }
+
+  .acf-type-badge {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.2rem 0.45rem;
+  }
+
+  .acf-type-text {
+    background: #ecfdf5;
+    color: #15803d;
+  }
+
+  .acf-type-number {
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+
+  .acf-type-select {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .acf-required-pill {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 1.6rem;
+    height: 1.4rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    border: 1px solid transparent;
+  }
+
+  .acf-required-yes {
+    background: #ecfdf5;
+    border-color: #4ade80;
+    color: #15803d;
+  }
+
+  .acf-required-no {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    color: #6b7280;
+  }
+
+  // ====== Forms ======
+  .acf-form,
+  .acf-form-template {
+    margin-top: 0.3rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed rgba(148, 163, 184, 0.6);
+  }
+
+  .acf-form-title {
+    margin-top: 0.5rem;
+
+    .acf-form-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+    }
+  }
+
+  .acf-mode-pill {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+  }
+
+  .acf-mode-add {
+    background: #ecfdf5;
+    color: #166534;
+  }
+
+  .acf-mode-edit {
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+
+  .form-label-sm {
+    font-size: 0.75rem;
+    margin-bottom: 0.15rem;
+    color: #6b7280;
+  }
+
+  .acf-form-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    .form-check-input {
+      margin-top: 0;
+    }
+
+    .form-check-label {
+      font-size: 0.8rem;
+      color: #4b5563;
+    }
+  }
+
+  .acf-submit-btn {
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  // ====== Templates ======
+  .acf-template-block {
+    border-radius: 0.9rem;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    padding: 0.85rem 0.85rem 1rem;
+    background: linear-gradient(135deg, rgba(249, 250, 251, 0.9), #ffffff);
+  }
+
+  .acf-template-header {
+    .acf-template-id-pill {
+      font-size: 0.7rem;
+      background: #eef2ff;
+      color: #4338ca;
+      border-radius: 999px;
+      padding: 0.15rem 0.55rem;
+      border: 1px solid rgba(129, 140, 248, 0.7);
+    }
+
+    small {
+      font-size: 0.75rem;
+    }
+  }
+
+  .acf-template-add {
+    input {
+      min-width: 120px;
+    }
+  }
+
+  // ====== Responsive tweaks ======
+  @media (max-width: 991.98px) {
+    .acf-page-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .acf-card {
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+    }
+  }
+}

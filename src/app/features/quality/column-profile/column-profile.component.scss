@@ -1,0 +1,10 @@
+.cprof { padding: 8px; }
+.meta { display:flex; gap:16px; margin-bottom:10px; flex-wrap:wrap; }
+.kv{ display:flex; justify-content:space-between; gap:8px; }
+.k{ color:#6c757d } .v{ font-weight:700; }
+
+.bar{ display:grid; grid-template-columns: 1fr 260px auto; gap:8px; align-items:center; margin:6px 0; }
+.meter{ width:260px; height:10px; background:#f1f3f5; border-radius:6px; overflow:hidden; }
+.fill{ height:100%; background:#4dabf7; }
+
+.histo .hbar{ display:grid; grid-template-columns: 80px 260px auto; gap:8px; align-items:center; margin:6px 0; }

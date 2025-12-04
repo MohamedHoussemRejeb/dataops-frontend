@@ -1,0 +1,260 @@
+<div class="import-wizard container-fluid py-3">
+
+  <!-- HEADER BANDEAU (gradient #212631) -->
+  <div class="iw-header mb-3 d-flex justify-content-between align-items-center">
+    <div class="iw-header-left">
+      <span class="iw-chip">Catalogue · Import</span>
+      <h4 class="mb-1">Import métadonnées</h4>
+      <p class="mb-0">
+        Charge des datasets depuis un fichier <strong>CSV</strong>, <strong>Excel</strong> ou
+        un <strong>PDF</strong> analysé en OCR, puis mappe les colonnes avant commit.
+      </p>
+    </div>
+
+    <!-- Indicateur d’étape -->
+    <div class="iw-steps text-end">
+      <div class="iw-step-label">
+        Étape {{ step() }}/4
+      </div>
+      <div class="iw-step-track">
+        <div class="iw-step-dot" [class.active]="step() >= 1"></div>
+        <div class="iw-step-dot" [class.active]="step() >= 2"></div>
+        <div class="iw-step-dot" [class.active]="step() >= 3"></div>
+        <div class="iw-step-dot" [class.active]="step() >= 4"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD PRINCIPALE -->
+  <div class="card iw-card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <div class="d-flex flex-column">
+        <h5 class="mb-0">Assistant d’import</h5>
+        <small class="text-muted">
+          <ng-container [ngSwitch]="step()">
+            <span *ngSwitchCase="1">Sélection et lecture du fichier source.</span>
+            <span *ngSwitchCase="2">Mapping des colonnes vers les champs cibles.</span>
+            <span *ngSwitchCase="3">Prévisualisation avant commit.</span>
+            <span *ngSwitchCase="4">Résumé de l’opération.</span>
+          </ng-container>
+        </small>
+      </div>
+
+      <!-- Boutons étape / navigation -->
+      <div class="btn-group iw-step-actions" *ngIf="step() !== 4">
+        <button class="btn btn-outline-secondary btn-sm"
+                (click)="prev()"
+                [disabled]="step()===1">
+          Précédent
+        </button>
+
+        <!-- Suivant (désactivé si aucune ligne) -->
+        <button class="btn btn-primary btn-sm"
+                (click)="next()"
+                *ngIf="step()>1 && step()<3"
+                [disabled]="!rows().length">
+          Suivant
+        </button>
+
+        <!-- Commit -->
+        <button class="btn btn-success btn-sm"
+                (click)="commit()"
+                *ngIf="step()===3"
+                [disabled]="committing() || !preview().length">
+          Commit
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <!-- Erreur globale -->
+      <div *ngIf="error()" class="alert alert-danger iw-alert mb-3">
+        {{ error() }}
+      </div>
+
+      <!-- ============================ -->
+      <!-- ÉTAPE 1 : Upload & OCR       -->
+      <!-- ============================ -->
+      <ng-container *ngIf="step()===1">
+        <p class="text-muted mb-3">
+          <strong>Étape 1/4 — Source de données.</strong><br>
+          Importez un fichier <strong>CSV</strong>, <strong>Excel (.xlsx)</strong> ou
+          un <strong>PDF</strong> pour extraction OCR. Les données seront analysées avant le mapping.
+        </p>
+
+        <div class="row g-4">
+          <!-- Upload CSV / XLSX -->
+          <div class="col-12 col-lg-6">
+            <div class="iw-subcard">
+              <h6 class="mb-1">Fichier tabulaire</h6>
+              <small class="text-muted d-block mb-2">
+                CSV / Excel avec en-têtes de colonnes.
+              </small>
+              <app-step-upload (done)="onUploadDone($event)"></app-step-upload>
+            </div>
+          </div>
+
+          <!-- OCR PDF -->
+          <div class="col-12 col-lg-6">
+            <div class="iw-subcard">
+              <h6 class="mb-1">PDF avec OCR</h6>
+              <small class="text-muted d-block mb-2">
+                Utilise l’OCR pour transformer un PDF en texte exploitable.
+              </small>
+              <app-ocr-upload (extracted)="onOcrExtract($event)"></app-ocr-upload>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3 small text-muted" *ngIf="fileName()">
+          Fichier sélectionné : <span class="fw-semibold">{{ fileName() }}</span>
+        </div>
+
+        <!-- Aperçu texte OCR -->
+        <div class="mt-3" *ngIf="ocrText()">
+          <label class="form-label">Texte OCR (aperçu)</label>
+          <pre class="form-control iw-ocr-preview">
+{{ ocrText() }}</pre>
+        </div>
+      </ng-container>
+
+      <!-- ============================ -->
+      <!-- ÉTAPE 2 : Mapping            -->
+      <!-- ============================ -->
+      <ng-container *ngIf="step()===2">
+        <p class="text-muted mb-3">
+          <strong>Étape 2/4 — Mapping des champs.</strong><br>
+          Associe chaque champ cible à une colonne du fichier importé.
+        </p>
+
+        <div class="row g-3">
+          <div class="col-12 col-md-6" *ngFor="let key of targetKeys">
+            <div class="iw-field">
+              <label class="form-label">
+                {{ key }}
+                <span *ngIf="key==='name'" class="badge iw-badge-required">obligatoire</span>
+              </label>
+
+              <select class="form-select"
+                      [ngModel]="mapping()[key]"
+                      (ngModelChange)="setMapping(key, $event)">
+                <option [ngValue]="undefined">— aucune colonne —</option>
+                <option *ngFor="let h of headers()" [ngValue]="h">{{ h }}</option>
+              </select>
+
+              <div class="form-text" *ngIf="key==='name'">
+                Doit être mappé pour que la ligne soit considérée comme valide.
+              </div>
+              <div class="form-text" *ngIf="key==='tags'">
+                Séparer les tags par <code>|</code> (ex : <code>pii|gold</code>).
+              </div>
+
+              <div class="form-text" *ngIf="key==='fields'">
+                JSON optionnel :
+                <code>&#91;&#123;&quot;name&quot;:&quot;id&quot;,&quot;type&quot;:&quot;int&quot;&#125;&#93;</code>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <button class="btn btn-primary"
+                  (click)="next()"
+                  [disabled]="!rows().length || !mapping().name">
+            Prévisualiser
+          </button>
+        </div>
+      </ng-container>
+
+      <!-- ============================ -->
+      <!-- ÉTAPE 3 : Preview            -->
+      <!-- ============================ -->
+      <ng-container *ngIf="step()===3">
+        <p class="text-muted mb-3">
+          <strong>Étape 3/4 — Aperçu des objets créés.</strong><br>
+          Vérifie les métadonnées avant l’écriture dans le catalogue.
+        </p>
+
+        <div class="table-responsive iw-preview-table mb-3">
+          <table class="table table-sm table-striped align-middle">
+            <thead>
+              <tr>
+                <th>name</th>
+                <th>domain</th>
+                <th>owner</th>
+                <th>tags</th>
+                <th>fields</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of preview(); let i = index">
+                <td>{{ r.name }}</td>
+                <td>{{ r.domain || '—' }}</td>
+                <td>
+                  {{ r.owner_name || '—' }}
+                  <br>
+                  <small class="text-muted">{{ r.owner_email || '' }}</small>
+                </td>
+                <td>{{ (r.tags || []).join(' | ') || '—' }}</td>
+                <td>{{ fieldsSummary(r) }}</td>
+              </tr>
+
+              <tr *ngIf="!preview().length">
+                <td colspan="5" class="text-center text-muted py-3">
+                  Aucun enregistrement valide : le champ <strong>name</strong> est obligatoire.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary" (click)="prev()">
+            Retour au mapping
+          </button>
+          <button class="btn btn-success"
+                  (click)="commit()"
+                  [disabled]="committing() || !preview().length">
+            Commit
+          </button>
+        </div>
+      </ng-container>
+
+      <!-- ============================ -->
+      <!-- ÉTAPE 4 : Résultat           -->
+      <!-- ============================ -->
+      <ng-container *ngIf="step()===4">
+        <p class="text-muted mb-3">
+          <strong>Étape 4/4 — Résultat de l’import.</strong>
+        </p>
+
+        <div class="alert iw-alert-result"
+             [class.alert-success]="result()?.ok"
+             [class.alert-danger]="!result()?.ok">
+          <div *ngIf="result()?.ok">
+            ✅ Import OK — créés : {{ result()?.created }} / échecs : {{ result()?.failed }}
+          </div>
+          <div *ngIf="!result()?.ok">
+            ❌ Import KO — créés : {{ result()?.created }} / échecs : {{ result()?.failed }}
+          </div>
+          <div class="small text-muted" *ngIf="result()?.txId">
+            txId : {{ result()?.txId }}
+          </div>
+        </div>
+
+        <div *ngIf="result()?.errors?.length">
+          <h6>Erreurs</h6>
+          <ul class="small mb-3">
+            <li *ngFor="let e of result()?.errors">
+              Ligne {{ e.row }} — {{ e.message }}
+            </li>
+          </ul>
+        </div>
+
+        <button class="btn btn-primary" (click)="step.set(1)">
+          Nouveau chargement
+        </button>
+      </ng-container>
+    </div>
+  </div>
+</div>

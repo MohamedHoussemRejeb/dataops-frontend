@@ -1,0 +1,44 @@
+<div class="powerbi-container card" [class.fullscreen]="isFullscreen">
+  <div class="powerbi-header card-header d-flex align-items-center justify-content-between">
+    <div>
+      <h5 class="mb-0 powerbi-title">Power BI Dashboard</h5>
+      <p class="mb-0 powerbi-subtitle">
+        Vue consolidée de vos indicateurs DataOps dans Power BI.
+      </p>
+    </div>
+
+    <div class="powerbi-header__right d-flex align-items-center gap-2">
+      <div class="btn-group btn-group-sm powerbi-buttons">
+        <!-- Download / Export (open in new tab) -->
+        <button type="button"
+                class="btn btn-outline-light"
+                (click)="openInNewTab()">
+          <i class="cil-cloud-download me-1"></i>
+          Export / Download
+        </button>
+
+        <!-- Fullscreen toggle -->
+        <button type="button"
+                class="btn btn-outline-light"
+                (click)="toggleFullscreen()">
+          <ng-container *ngIf="!isFullscreen; else exitFs">
+            <i class="cil-fullscreen me-1"></i>
+            Plein écran
+          </ng-container>
+          <ng-template #exitFs>
+            <i class="cil-fullscreen-exit me-1"></i>
+            Quitter
+          </ng-template>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="powerbi-body card-body p-0">
+    <iframe
+      [src]="url | safeUrl"
+      frameborder="0"
+      allowfullscreen="true">
+    </iframe>
+  </div>
+</div>

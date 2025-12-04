@@ -1,0 +1,329 @@
+<!-- src/app/features/alerts/alerts-list.component.html -->
+
+<div class="card alerts-card shadow-sm">
+  <!-- Header -->
+  <div
+    class="card-header alerts-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h5 class="alerts-title mb-1">Centre d’alertes</h5>
+      <p class="alerts-subtitle mb-0">
+        Supervision centralisée des incidents DataOps (sévérité, flux, statut).
+      </p>
+    </div>
+
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <!-- Indication temps réel -->
+      <div class="d-flex align-items-center gap-2 me-3">
+        <span class="status-dot status-live"></span>
+        <span class="small text-muted alerts-live-text">Surveillance en temps réel</span>
+      </div>
+
+      <!-- Actions sélection -->
+      <div class="btn-group btn-group-sm" role="group" aria-label="Actions de sélection">
+        <button
+          class="btn btn-outline-light alerts-btn"
+          (click)="ackSelected()"
+          [disabled]="!selected.size || loading"
+          aria-label="Acquitter la sélection">
+          Acquitter sélection
+        </button>
+        <button
+          class="btn btn-outline-light alerts-btn"
+          (click)="clearSel()"
+          [disabled]="!selected.size || loading"
+          aria-label="Vider la sélection">
+          Vider sélection
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body alerts-body">
+    <!-- Erreur + Retry -->
+    <div
+      *ngIf="error"
+      class="alert alert-danger d-flex justify-content-between align-items-center"
+      role="alert">
+      <div>⚠ {{ error }}</div>
+      <button
+        class="btn btn-sm btn-outline-light"
+        (click)="reload()"
+        aria-label="Réessayer">
+        Réessayer
+      </button>
+    </div>
+
+    <!-- Loader (squelette simple) -->
+    <div *ngIf="loading && !error" class="skeleton-bar mb-3">
+      <span class="skeleton-line"></span>
+    </div>
+
+    <!-- Bandeau résumé -->
+    <div
+      class="alerts-summary d-flex flex-wrap align-items-center justify-content-between mb-3"
+      *ngIf="!error">
+      <div class="text-muted small">
+        <span class="fw-semibold">{{ total || 0 }}</span> alertes au total.
+        <ng-container *ngIf="filtered() as f">
+          <span *ngIf="f.length !== total">
+            Filtré : <span class="fw-semibold">{{ f.length }}</span> visibles.
+          </span>
+        </ng-container>
+      </div>
+
+      <div class="d-flex flex-wrap gap-1">
+        <span class="badge bg-danger-soft text-danger small">CRITICAL / ERROR</span>
+        <span class="badge bg-warning-soft text-warning small">WARN</span>
+        <span class="badge bg-info-soft text-primary small">INFO</span>
+      </div>
+    </div>
+
+    <!-- Filtres principaux -->
+    <div class="filters-wrapper mb-3">
+      <div class="row g-2 align-items-center">
+        <!-- Recherche -->
+        <div class="col-12 col-md-4">
+          <label class="form-label form-label-sm text-muted mb-1">Recherche</label>
+          <input
+            class="form-control form-control-sm"
+            placeholder="Message, flux, source…"
+            [(ngModel)]="q"
+            (ngModelChange)="onFiltersChanged()"
+            [disabled]="loading"
+            aria-label="Recherche texte" />
+        </div>
+
+        <!-- Sévérité -->
+        <div class="col-6 col-md-3">
+          <label class="form-label form-label-sm text-muted mb-1">Sévérité</label>
+          <select
+            class="form-select form-select-sm"
+            [(ngModel)]="severity"
+            (ngModelChange)="onFiltersChanged()"
+            [disabled]="loading"
+            aria-label="Filtrer par sévérité">
+            <option [ngValue]="undefined">Toutes sévérités</option>
+            <option>INFO</option>
+            <option>WARN</option>
+            <option>ERROR</option>
+            <option>CRITICAL</option>
+          </select>
+        </div>
+
+        <!-- Masquer acquittées -->
+        <div class="col-6 col-md-3 d-flex align-items-center pt-2 pt-md-4">
+          <div class="form-check form-switch">
+            <input
+              id="onlyOpen"
+              type="checkbox"
+              class="form-check-input"
+              [(ngModel)]="onlyOpen"
+              (ngModelChange)="onFiltersChanged()"
+              [disabled]="loading" />
+            <label for="onlyOpen" class="form-check-label small">
+              Masquer acquittées
+            </label>
+          </div>
+        </div>
+
+        <!-- Reset -->
+        <div class="col-12 col-md-2 d-flex align-items-center justify-content-end pt-2 pt-md-4">
+          <button
+            class="btn btn-outline-secondary btn-sm w-100"
+            (click)="clearFilters()"
+            [disabled]="loading">
+            Réinitialiser filtres
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtres Gouvernance (Sensibilité / Légal) -->
+    <app-governance-filters
+      class="mb-3"
+      [value]="{ sensitivity: selectedSensitivity, legal: selectedLegal }"
+      (change)="onGovFilterChange($event)">
+    </app-governance-filters>
+
+    <!-- Tableau -->
+    <div class="table-responsive alerts-table-wrapper" *ngIf="!error">
+      <table class="table table-hover align-middle table-sm alerts-table" aria-label="Tableau des alertes">
+        <thead class="table-light">
+          <tr>
+            <th style="width:32px"></th>
+            <th>Date</th>
+            <th>Sév.</th>
+            <th>Source</th>
+            <th>Flux</th>
+            <th>Message</th>
+            <th>Sensibilité</th>
+            <th>Légal</th>
+            <th>Run</th>
+            <th>État</th>
+            <th style="width: 80px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 🔥 IMPORTANT : utilisation de paged() -->
+          <tr *ngFor="let a of paged(); trackBy: trackById">
+            <!-- Checkbox -->
+            <td>
+              <input
+                type="checkbox"
+                class="form-check-input"
+                [checked]="isSel(a.id)"
+                (change)="toggle(a.id,$event)"
+                [disabled]="loading"
+                aria-label="Sélectionner cette alerte" />
+            </td>
+
+            <!-- Date -->
+            <td class="col-date">
+              <div class="small text-muted">
+                {{ a.createdAt | date:'MM/dd/yy, HH:mm' }}
+              </div>
+            </td>
+
+            <!-- Sévérité -->
+            <td class="col-sev">
+              <span
+                class="badge badge-sev"
+                [ngClass]="{
+                  'sev-info': a.severity==='INFO',
+                  'sev-warn': a.severity==='WARN',
+                  'sev-error': a.severity==='ERROR',
+                  'sev-critical': a.severity==='CRITICAL'
+                }">
+                {{ a.severity }}
+              </span>
+            </td>
+
+            <!-- Source -->
+            <td class="col-source">
+              <span class="badge bg-light text-muted fw-normal">
+                {{ a.source || '—' }}
+              </span>
+            </td>
+
+            <!-- Flux -->
+            <td class="col-flow">
+              <span class="fw-semibold">{{ a.flowType || '—' }}</span>
+            </td>
+
+            <!-- Message -->
+            <td class="mono col-message">
+              <span class="message-main" [title]="a.message">
+                {{ a.message }}
+              </span>
+            </td>
+
+            <!-- Sensibilité -->
+            <td class="text-center col-sens">
+              <ng-container *ngIf="a.dataset?.sensitivity as sens; else noSens">
+                <app-sensitivity-badge [value]="sens"></app-sensitivity-badge>
+              </ng-container>
+              <ng-template #noSens><span class="text-muted">—</span></ng-template>
+            </td>
+
+            <!-- Légal -->
+            <td class="text-center col-legal">
+              <ng-container *ngIf="a.dataset?.legal as legals; else noLegal">
+                <app-legal-badges [tags]="legals"></app-legal-badges>
+              </ng-container>
+              <ng-template #noLegal><span class="text-muted">—</span></ng-template>
+            </td>
+
+            <!-- Run -->
+            <td class="text-center col-run">
+              <button
+                *ngIf="a.runId"
+                type="button"
+                class="btn btn-sm btn-light btn-run"
+                [class.disabled]="loading"
+                [attr.aria-disabled]="loading"
+                [attr.tabindex]="loading ? -1 : null"
+                (click)="!loading && openRun(a.runId)">
+                Voir
+              </button>
+              <span *ngIf="!a.runId" class="text-muted">—</span>
+            </td>
+
+            <!-- État -->
+            <td class="text-center col-state">
+              <span
+                *ngIf="a.acknowledged"
+                class="state-pill state-ok">
+                OK
+              </span>
+              <span
+                *ngIf="!a.acknowledged"
+                class="state-pill state-open">
+                Ouverte
+              </span>
+            </td>
+
+            <!-- Actions -->
+            <td class="text-end col-actions">
+              <button
+                class="btn btn-sm btn-outline-success"
+                (click)="ackOne(a.id)"
+                [disabled]="loading || a.acknowledged"
+                aria-label="Acquitter cette alerte">
+                Ack
+              </button>
+            </td>
+          </tr>
+
+          <!-- Empty state -->
+          <tr *ngIf="!loading && !error && !filtered().length">
+            <td colspan="11" class="text-center text-muted p-4">
+              Aucune alerte.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 🔥 Pagination -->
+    <div
+      class="alerts-pagination d-flex justify-content-between align-items-center mt-2"
+      *ngIf="!loading && !error && total">
+
+      <div class="text-muted small">
+        Affichage
+        {{ pageIndex * pageSize + 1 }}
+        –
+        {{ ((pageIndex + 1) * pageSize > total ? total : (pageIndex + 1) * pageSize) }}
+        sur {{ total }} alertes
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <!-- Taille de page -->
+        <select
+          class="form-select form-select-sm page-size-select"
+          [(ngModel)]="pageSize"
+          (ngModelChange)="resetPage()">
+          <option [ngValue]="5">5</option>
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="20">20</option>
+        </select>
+
+        <!-- Précédent -->
+        <button
+          class="btn btn-sm btn-outline-secondary"
+          (click)="pageIndex = pageIndex - 1"
+          [disabled]="pageIndex === 0">
+          ‹ Préc.
+        </button>
+
+        <!-- Suivant -->
+        <button
+          class="btn btn-sm btn-outline-secondary"
+          (click)="pageIndex = pageIndex + 1"
+          [disabled]="(pageIndex + 1) * pageSize >= total">
+          Suiv. ›
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

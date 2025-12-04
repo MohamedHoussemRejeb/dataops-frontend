@@ -1,0 +1,30 @@
+<div class="container py-4">
+  <h4 class="mb-3">Upload d’un fichier (mock)</h4>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Flux</label>
+          <select class="form-select" [(ngModel)]="flowType">
+            <option value="">— choisir —</option>
+            <option *ngFor="let f of flowTypes" [value]="f">{{ f }}</option>
+          </select>
+        </div>
+
+        <div class="col-md-8">
+          <label class="form-label">Fichier CSV / positionnel</label>
+          <input type="file" class="form-control" (change)="onFileChange($event)">
+          <div class="form-text">Ceci est une simulation (mock) pour l’instant.</div>
+        </div>
+      </div>
+
+      <div class="mt-3 d-flex gap-2">
+        <button class="btn btn-primary" (click)="submit()" [disabled]="busy">Uploader</button>
+        <a class="btn btn-outline-secondary" routerLink="/runs">Annuler</a>
+      </div>
+
+      <div *ngIf="msg" class="alert alert-info mt-3">{{ msg }}</div>
+    </div>
+  </div>
+</div>

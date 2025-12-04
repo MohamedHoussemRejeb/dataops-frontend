@@ -1,0 +1,735 @@
+<div class="catalog">
+  <header class="toolbar">
+    <div class="lhs">
+      <div class="title-block">
+        <h2>Catalogue des datasets</h2>
+        <p class="subtitle">
+          Vue centralisée de vos assets de données, SLA et gouvernance.
+        </p>
+      </div>
+
+      <div class="summary" *ngIf="!loading()">
+        {{ filtered().length }} résultat(s) •
+        <span class="pill ok">OK {{ countByStatus().OK }}</span>
+        <span class="pill late">LATE {{ countByStatus().LATE }}</span>
+        <span class="pill failed">FAILED {{ countByStatus().FAILED }}</span>
+        <span class="pill running">RUN {{ countByStatus().RUNNING }}</span>
+      </div>
+    </div>
+
+    <div class="rhs">
+      <div class="search-wrapper">
+        <input
+          class="search"
+          type="search"
+          [ngModel]="q()"
+          (ngModelChange)="q.set($event)"
+          placeholder="Rechercher (nom pro, owner, domaine, tag, dépendance…)"
+          aria-label="Rechercher un dataset"
+        />
+      </div>
+
+      <select
+        class="select"
+        [ngModel]="sortBy()"
+        (ngModelChange)="sortBy.set($event)"
+        aria-label="Trier par"
+      >
+        <option value="name">Nom pro</option>
+        <option value="domain">Domaine</option>
+        <option value="status">Statut</option>
+        <option value="endedAt">Dernier chargement</option>
+        <option value="owner">Propriétaire</option>
+      </select>
+
+      <select
+        class="select"
+        [ngModel]="perPage()"
+        (ngModelChange)="perPage.set(+$event)"
+        aria-label="Taille de page"
+      >
+        <option [ngValue]="8">8 / page</option>
+        <option [ngValue]="12">12 / page</option>
+        <option [ngValue]="24">24 / page</option>
+      </select>
+
+      <label class="toggle">
+        <input
+          type="checkbox"
+          [checked]="onlyFav()"
+          (change)="onlyFav.set(($any($event.target)).checked)"
+        />
+        Mes abonnements ({{ subs.count() }})
+      </label>
+
+      <label class="toggle">
+        <input
+          type="checkbox"
+          [checked]="groupByDomain()"
+          (change)="groupByDomain.set($any($event.target).checked)"
+        />
+        Grouper par domaine
+      </label>
+
+      <label class="toggle">
+        <input
+          type="checkbox"
+          [checked]="tableView()"
+          (change)="tableView.set($any($event.target).checked)"
+        />
+        Vue tableau
+      </label>
+
+      <!-- ⭐️ CRUD : modal création -->
+      <button class="btn primary" type="button" (click)="openCreateModal()">
+        + Nouveau dataset
+      </button>
+
+      <button class="btn ghost" type="button" (click)="exportCsv()">
+        Exporter CSV
+      </button>
+
+      <button class="btn ghost" type="button" (click)="copyShareLink()">
+        Copier le lien
+      </button>
+    </div>
+  </header>
+
+  <!-- Filtres Gouvernance -->
+  <app-governance-filters
+    [value]="{ sensitivity: selectedSensitivity(), legal: selectedLegal() }"
+    (change)="onGovFilterChange($event)"
+  ></app-governance-filters>
+
+  <div class="layout">
+    <!-- Facettes -->
+    <aside class="facets">
+      <div class="facet">
+        <div class="facet__title">Domaine</div>
+        <label *ngFor="let d of domains()">
+          <input
+            type="checkbox"
+            [checked]="domainSet().has(d)"
+            (change)="toggleSet(domainSet, d, $any($event.target).checked)"
+          />
+          {{ d }}
+        </label>
+      </div>
+
+      <div class="facet">
+        <div class="facet__title">Statut</div>
+        <label *ngFor="let s of statuses">
+          <input
+            type="checkbox"
+            [checked]="statusSet().has(s)"
+            (change)="toggleSet(statusSet, s, $any($event.target).checked)"
+          />
+          <span class="dot" [class]="'dot '+statusClass(s)"></span>
+          {{ statusText(s) }}
+        </label>
+      </div>
+
+      <div class="facet">
+        <div class="facet__title">Tags</div>
+        <label *ngFor="let t of tags()">
+          <input
+            type="checkbox"
+            [checked]="tagSet().has(t)"
+            (change)="toggleSet(tagSet, t, $any($event.target).checked)"
+          />
+          {{ t }}
+        </label>
+      </div>
+
+      <div class="facet">
+        <div class="facet__title">Owner</div>
+        <label *ngFor="let o of owners()">
+          <input
+            type="checkbox"
+            [checked]="ownerSet().has(o)"
+            (change)="toggleSet(ownerSet, o, $any($event.target).checked)"
+          />
+          {{ o }}
+        </label>
+      </div>
+
+      <button class="btn-link reset" type="button" (click)="clearFilters()">
+        Réinitialiser les filtres
+      </button>
+    </aside>
+
+    <!-- Contenu -->
+    <section class="content">
+      <!-- Error state -->
+      <div *ngIf="error()" class="err">
+        <div class="err__icon">⚠</div>
+        <div class="err__body">
+          <div class="err__title">Erreur lors du chargement des datasets</div>
+          <div class="err__msg">{{ error() }}</div>
+        </div>
+        <button class="pg" type="button" (click)="reload()">Réessayer</button>
+      </div>
+
+      <div class="skeleton-grid" *ngIf="loading() && !error()">
+        <div class="sk-card" *ngFor="let _ of skeletonItems"></div>
+      </div>
+
+      <!-- Tableau (click = lineage) -->
+      <table
+        *ngIf="!loading() && !error() && tableView()"
+        class="tbl"
+      >
+        <thead>
+          <tr>
+            <th (click)="sortBy.set('name')">Nom pro</th>
+            <th>Owner</th>
+            <th>Tags</th>
+            <th>Sensibilité</th>
+            <th>Légal</th>
+            <th>Trust</th>
+            <th>Risk</th>
+            <th class="th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let d of paged()"
+            [id]="'dataset-' + d.urn"
+            class="row-click"
+            (click)="openLineage(d)"
+            tabindex="0"
+            (keydown.enter)="openLineage(d)"
+            (keydown.space)="openLineage(d)"
+          >
+            <td>{{ d.name }}</td>
+            <td>{{ d.owner?.name || '—' }}</td>
+            <td>
+              <span class="tag" *ngFor="let t of (d.tags || [])">{{ t }}</span>
+            </td>
+            <td>
+              <app-sensitivity-badge
+                *ngIf="d.sensitivity"
+                [value]="d.sensitivity!"
+              ></app-sensitivity-badge>
+            </td>
+            <td>
+              <app-legal-badges
+                *ngIf="d.legal?.length"
+                [tags]="d.legal!"
+              ></app-legal-badges>
+            </td>
+            <td>
+              <app-trust-badge [value]="d.trust ?? null"></app-trust-badge>
+            </td>
+            <td>
+              <app-risk-pill [risk]="d.risk ?? 'UNKNOWN'"></app-risk-pill>
+            </td>
+            <td class="tbl-actions" (click)="$event.stopPropagation()">
+              <button
+                class="btn-link"
+                type="button"
+                (click)="openEditModal(d)"
+              >
+                Modifier
+              </button>
+              <button
+                class="btn-link danger"
+                type="button"
+                (click)="confirmDelete(d)"
+              >
+                Supprimer
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Cartes -->
+      <ng-container *ngIf="!loading() && !error() && !tableView()">
+        <ng-container *ngIf="!groupByDomain(); else grouped">
+          <div class="grid" *ngIf="paged().length; else empty">
+            <article
+              class="card clickable"
+              *ngFor="let d of paged()"
+              [id]="'dataset-' + d.urn"
+              (click)="openLineage(d)"
+            >
+              <div class="card__head">
+                <div class="title">
+                  <span class="badge domain">{{ d.domain || '—' }}</span>
+                  <h3>{{ d.name }}</h3>
+
+                  <app-sensitivity-badge
+                    *ngIf="d.sensitivity"
+                    [value]="d.sensitivity!"
+                  ></app-sensitivity-badge>
+
+                  <app-legal-badges
+                    *ngIf="d.legal?.length"
+                    [tags]="d.legal!"
+                  ></app-legal-badges>
+                </div>
+
+                <div class="right">
+                  <app-trust-badge
+                    [value]="d.trust ?? null"
+                  ></app-trust-badge>
+
+                  <app-risk-pill
+                    [risk]="d.risk ?? 'UNKNOWN'"
+                  ></app-risk-pill>
+
+                  <span class="pill-sub" *ngIf="subs.is(d.id)">Abonné</span>
+
+                  <app-fav-btn
+                    [id]="d.id"
+                    (click)="$event.stopPropagation()"
+                  ></app-fav-btn>
+                </div>
+              </div>
+
+              <div class="owner" [title]="d.owner?.email">
+                <div class="avatar">{{ initials(d.owner?.name || '') }}</div>
+                <div class="owner__meta">
+                  <div class="owner__name">{{ d.owner?.name || '—' }}</div>
+                  <a
+                    class="owner__mail"
+                    *ngIf="d.owner?.email"
+                    [href]="'mailto:'+d.owner!.email"
+                    (click)="$event.stopPropagation()"
+                  >
+                    {{ d.owner?.email }}
+                  </a>
+                </div>
+              </div>
+
+              <p class="desc" *ngIf="d.description">{{ d.description }}</p>
+
+              <div class="row">
+                <div class="col">
+                  <div class="label">SLA</div>
+                  <div class="kv">
+                    <span class="k">Fréquence</span>
+                    <span class="v">{{ labelFreq(d.sla?.frequency) }}</span>
+                  </div>
+                  <div class="kv">
+                    <span class="k">Attendu avant</span>
+                    <span class="v">{{ d.sla?.expectedBy || '—' }}</span>
+                  </div>
+                  <div class="kv">
+                    <span class="k">Tolérance</span>
+                    <span class="v">
+                      {{ d.sla?.maxDelayMin ?? '—' }} min
+                    </span>
+                  </div>
+                </div>
+
+                <div class="col">
+                  <div class="label">Dernier chargement</div>
+                  <div class="status">
+                    <span
+                      class="dot"
+                      [class]="'dot '+statusClass(d.lastLoad?.status)"
+                    ></span>
+                    <span class="status__text">
+                      {{ statusText(d.lastLoad?.status) }}
+                    </span>
+                  </div>
+                  <div
+                    class="small muted"
+                    *ngIf="d.lastLoad?.endedAt; else never2"
+                  >
+                    Terminé:
+                    {{ d.lastLoad?.endedAt | date:'short' }}
+                    <ng-container *ngIf="d.lastLoad?.durationSec">
+                      • {{ d.lastLoad?.durationSec }}s
+                    </ng-container>
+                  </div>
+                  <ng-template #never2>
+                    <div class="small muted">Jamais exécuté</div>
+                  </ng-template>
+                </div>
+
+                <div class="col">
+                  <div class="label">Dépendances</div>
+                  <div class="deps">
+                    <span
+                      class="tag"
+                      *ngFor="let dep of (d.dependencies || [])"
+                    >
+                      {{ dep }}
+                    </span>
+                    <span
+                      class="muted small"
+                      *ngIf="!d.dependencies?.length"
+                    >
+                      —
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <footer class="card__foot" (click)="$event.stopPropagation()">
+                <div class="tags">
+                  <span class="chip" *ngFor="let t of (d.tags || [])">
+                    {{ t }}
+                  </span>
+                </div>
+                <div class="foot-actions">
+                  <button
+                    class="btn-link"
+                    type="button"
+                    (click)="openDetail(d)"
+                  >
+                    Voir détails
+                  </button>
+                  <button
+                    class="btn-link"
+                    type="button"
+                    (click)="openEditModal(d)"
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    class="btn-link danger"
+                    type="button"
+                    (click)="confirmDelete(d)"
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              </footer>
+            </article>
+          </div>
+        </ng-container>
+
+        <ng-template #grouped>
+          <div class="group" *ngFor="let g of groupedByDomain()">
+            <h4 class="group__title">
+              {{ g.key || '—' }}
+              <span class="muted">({{ g.items.length }})</span>
+            </h4>
+
+            <div class="grid">
+              <article
+                class="card clickable"
+                *ngFor="let d of g.items"
+                [id]="'dataset-' + d.urn"
+                (click)="openLineage(d)"
+              >
+                <div class="card__head">
+                  <div class="title">
+                    <span class="badge domain">{{ d.domain || '—' }}</span>
+                    <h3>{{ d.name }}</h3>
+
+                    <app-sensitivity-badge
+                      *ngIf="d.sensitivity"
+                      [value]="d.sensitivity!"
+                    ></app-sensitivity-badge>
+
+                    <app-legal-badges
+                      *ngIf="d.legal?.length"
+                      [tags]="d.legal!"
+                    ></app-legal-badges>
+                  </div>
+
+                  <div class="right">
+                    <app-trust-badge
+                      [value]="d.trust ?? null"
+                    ></app-trust-badge>
+
+                    <app-risk-pill
+                      [risk]="d.risk ?? 'UNKNOWN'"
+                    ></app-risk-pill>
+
+                    <span class="pill-sub" *ngIf="subs.is(d.id)">Abonné</span>
+
+                    <app-fav-btn
+                      [id]="d.id"
+                      (click)="$event.stopPropagation()"
+                    ></app-fav-btn>
+                  </div>
+                </div>
+
+                <p class="desc" *ngIf="d.description">{{ d.description }}</p>
+
+                <div class="status">
+                  <span
+                    class="dot"
+                    [class]="'dot '+statusClass(d.lastLoad?.status)"
+                  ></span>
+                  <span class="status__text">
+                    {{ statusText(d.lastLoad?.status) }}
+                  </span>
+                </div>
+
+                <footer class="card__foot" (click)="$event.stopPropagation()">
+                  <div class="tags">
+                    <span class="chip" *ngFor="let t of (d.tags || [])">
+                      {{ t }}
+                    </span>
+                  </div>
+                  <div class="foot-actions">
+                    <button
+                      class="btn-link"
+                      type="button"
+                      (click)="openDetail(d)"
+                    >
+                      Voir détails
+                    </button>
+                    <button
+                      class="btn-link"
+                      type="button"
+                      (click)="openEditModal(d)"
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      class="btn-link danger"
+                      type="button"
+                      (click)="confirmDelete(d)"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </footer>
+              </article>
+            </div>
+          </div>
+        </ng-template>
+      </ng-container>
+
+      <div
+        class="pager"
+        *ngIf="!loading() && !error() && filtered().length > perPage()"
+      >
+        <button
+          class="pg"
+          [disabled]="page()===1"
+          (click)="page.set(page()-1)"
+        >
+          ‹
+        </button>
+        <span class="pager__info">
+          Page {{ page() }} / {{ totalPages() }}
+        </span>
+        <button
+          class="pg"
+          [disabled]="page()===totalPages()"
+          (click)="page.set(page()+1)"
+        >
+          ›
+        </button>
+      </div>
+
+      <ng-template #empty>
+        <div class="empty">
+          <h4>Aucun dataset ne correspond à la recherche ou aux filtres.</h4>
+          <p class="muted">
+            Ajustez les facettes à gauche ou effacez les filtres pour élargir la recherche.
+          </p>
+          <button class="btn ghost" type="button" (click)="clearFilters()">
+            Réinitialiser tous les filtres
+          </button>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+
+  <!-- 🔥 MODAL CRÉATION / MODIFICATION DATASET -->
+  <div class="modal-backdrop" *ngIf="showDatasetModal()">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal__header">
+        <h3 class="modal__title">
+          {{ isEditMode() ? 'Modifier le dataset' : 'Nouveau dataset' }}
+        </h3>
+        <button
+          type="button"
+          class="modal__close"
+          (click)="closeDatasetModal()"
+          [disabled]="saving()"
+        >
+          ✕
+        </button>
+      </div>
+
+      <form class="modal__body" (ngSubmit)="saveDataset($event)">
+        <!-- Nom -->
+        <div class="form-group">
+          <label for="ds-name">Nom du dataset *</label>
+          <input
+            id="ds-name"
+            type="text"
+            [(ngModel)]="modalModel.name"
+            name="name"
+            required
+            maxlength="160"
+          />
+        </div>
+
+        <!-- URN + import fichier -->
+        <div class="form-group">
+          <label for="ds-urn">URN / identifiant technique</label>
+          <input
+            id="ds-urn"
+            type="text"
+            [(ngModel)]="modalModel.urn"
+            name="urn"
+            maxlength="500"
+          />
+          <small class="form-hint">
+            Vous pouvez renseigner l’URN manuellement ou importer un fichier pour le pré-remplir.
+          </small>
+          <input
+            type="file"
+            name="urnFile"
+            (change)="onUrnFileSelected($event)"
+          />
+        </div>
+
+        <!-- Domaine -->
+        <div class="form-group">
+          <label for="ds-domain">Domaine</label>
+          <input
+            id="ds-domain"
+            type="text"
+            [(ngModel)]="modalModel.domain"
+            name="domain"
+            maxlength="120"
+          />
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label for="ds-desc">Description</label>
+          <textarea
+            id="ds-desc"
+            rows="3"
+            [(ngModel)]="modalModel.description"
+            name="description"
+            maxlength="4000"
+          ></textarea>
+        </div>
+
+        <!-- Tags -->
+        <div class="form-group">
+          <label for="ds-tags">Tags (séparés par des virgules)</label>
+          <input
+            id="ds-tags"
+            type="text"
+            [(ngModel)]="modalModel.tags"
+            name="tags"
+          />
+        </div>
+
+        <!-- Dépendances -->
+        <div class="form-group">
+          <label for="ds-deps">Dépendances (séparées par des virgules)</label>
+          <input
+            id="ds-deps"
+            type="text"
+            [(ngModel)]="modalModel.dependencies"
+            name="dependencies"
+          />
+        </div>
+
+        <!-- SLA -->
+        <div class="form-group">
+          <label>SLA (fréquence et délai)</label>
+          <div class="sla-row">
+            <select
+              [(ngModel)]="modalModel.slaFrequency"
+              name="slaFrequency"
+            >
+              <option value="hourly">Horaire</option>
+              <option value="daily">Quotidien</option>
+              <option value="weekly">Hebdomadaire</option>
+            </select>
+
+            <input
+              type="time"
+              [(ngModel)]="modalModel.slaExpectedBy"
+              name="slaExpectedBy"
+            />
+
+            <input
+              type="number"
+              min="0"
+              [(ngModel)]="modalModel.slaMaxDelayMin"
+              name="slaMaxDelayMin"
+              placeholder="Tolérance (min)"
+            />
+          </div>
+          <small class="form-hint">
+            Exemple : quotidien, attendu avant 06:00, tolérance 30 minutes.
+          </small>
+        </div>
+
+        <!-- Trust / Risk -->
+        <div class="form-group">
+          <label>Trust &amp; Risk</label>
+          <div class="sla-row">
+            <input
+              type="number"
+              min="0"
+              max="100"
+              [(ngModel)]="modalModel.trust"
+              name="trust"
+              placeholder="Trust (0 - 100)"
+            />
+            <select
+              [(ngModel)]="modalModel.risk"
+              name="risk"
+            >
+              <option value="UNKNOWN">Inconnu</option>
+              <option value="OK">OK</option>
+              <option value="RISK">À risque</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Propriétaire (owner) -->
+        <div class="form-group">
+          <label>Propriétaire</label>
+          <div class="owner-row">
+            <input
+              type="text"
+              [value]="modalModel.ownerName"
+              readonly
+            />
+            <input
+              type="email"
+              [value]="modalModel.ownerEmail"
+              readonly
+            />
+          </div>
+          <small class="form-hint">
+            Le propriétaire est automatiquement défini à partir de l’utilisateur connecté (Keycloak).
+          </small>
+        </div>
+
+        <div class="form-error" *ngIf="formError">
+          {{ formError }}
+        </div>
+
+        <div class="modal__footer">
+          <button
+            type="button"
+            class="btn ghost"
+            (click)="closeDatasetModal()"
+            [disabled]="saving()"
+          >
+            Annuler
+          </button>
+          <button
+            type="submit"
+            class="btn primary"
+            [disabled]="saving()"
+          >
+            {{ saving() ? 'Enregistrement...' : (isEditMode() ? 'Enregistrer' : 'Créer') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

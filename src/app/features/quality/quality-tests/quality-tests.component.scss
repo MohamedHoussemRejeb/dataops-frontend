@@ -1,0 +1,39 @@
+.rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rule-item {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.rule-item:last-child {
+  border-bottom: none;
+}
+
+.rule-name {
+  font-weight: 500;
+}
+
+.history {
+  margin-top: 4px;
+}
+
+.history .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  margin-right: 2px;
+  background-color: #dee2e6;
+}
+
+.history .dot.ok {
+  background-color: #2fb344; // green
+}
+
+.history .dot.ko {
+  background-color: #fa5252; // red
+}

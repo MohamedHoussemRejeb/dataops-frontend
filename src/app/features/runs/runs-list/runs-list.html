@@ -1,0 +1,228 @@
+<div class="card shadow-sm">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <h5 class="mb-0">Administration des flux</h5>
+
+    <div class="btn-group">
+      <button class="btn btn-outline-secondary btn-sm" [routerLink]="'/upload'" [disabled]="loading" aria-label="Aller à Upload">
+        <i class="me-1"></i> Upload
+      </button>
+      <button class="btn btn-outline-secondary btn-sm" [routerLink]="'/etl-dashboard'" [disabled]="loading" aria-label="Aller au Dashboard">
+        <i class="me-1"></i> Dashboard
+      </button>
+
+      <button class="btn btn-outline-primary btn-sm" (click)="exportCsv()" [disabled]="loading || !dataSource.data?.length" aria-label="Exporter en CSV">
+        <i class="me-1"></i> Export CSV
+      </button>
+
+      <button
+        class="btn btn-warning btn-sm"
+        (click)="compareSelected()"
+        [disabled]="selectedIds.size !== 2 || loading"
+        aria-label="Comparer deux runs sélectionnés">
+        Comparer ({{ selectedIds.size }}/2)
+      </button>
+
+      <button class="btn btn-outline-success btn-sm" (click)="gen()" [disabled]="loading" aria-label="Générer un run">
+        Générer un run
+      </button>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <!-- ============== Loader (unique) ============== -->
+    <div *ngIf="loading" class="text-center py-5" role="status" aria-live="polite">
+      <div class="spinner-border text-primary" aria-label="Loading"></div>
+    </div>
+
+    <!-- ============== Filtres ============== -->
+    <div class="row g-3 filters mb-3">
+      <div class="col-12 col-md-3">
+        <label class="form-label">Flux</label>
+        <select class="form-select" [(ngModel)]="flowType" (change)="applyFilters()" [disabled]="loading" aria-label="Filtrer par flux">
+          <option [ngValue]="undefined">Tous</option>
+          <option *ngFor="let t of flowTypes" [ngValue]="t">{{ t }}</option>
+        </select>
+      </div>
+
+      <div class="col-12 col-md-3">
+        <label class="form-label">Statut</label>
+        <select class="form-select" [(ngModel)]="status" (change)="applyFilters()" [disabled]="loading" aria-label="Filtrer par statut">
+          <option [ngValue]="undefined">Tous</option>
+          <option *ngFor="let s of statuses" [ngValue]="s">{{ s }}</option>
+        </select>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <label class="form-label">Recherche message / source</label>
+        <input class="form-control" [(ngModel)]="q" (keyup.enter)="applyFilters()" [disabled]="loading"
+               placeholder="ex: Erreur parsing" aria-label="Rechercher dans message ou fichier source" />
+      </div>
+
+      <div class="col-12 col-md-2 d-flex align-items-end gap-2">
+        <button class="btn btn-primary w-100" (click)="onFilterClick()" [disabled]="loading" aria-label="Appliquer les filtres">Filtrer</button>
+        <button class="btn btn-outline-secondary w-100" (click)="clearFilters()" [disabled]="loading" aria-label="Réinitialiser les filtres">Réinitialiser</button>
+      </div>
+    </div>
+
+    <!-- ============== Gouvernance Filters ============== -->
+    <div class="mb-3">
+      <app-governance-filters
+        [value]="{ sensitivity: selectedSensitivity, legal: selectedLegal }"
+        (change)="onGovFilterChange($event)">
+      </app-governance-filters>
+    </div>
+
+    <!-- ============== Empty state (nouveau unifié) ============== -->
+    <app-state-block
+      *ngIf="!loading && !error && !hasData"
+      icon="🗂️"
+      title="Aucun résultat"
+      message="Ajuste les filtres ou réessaie.">
+    </app-state-block>
+    <!-- Si tu utilises i18n via pipe:
+         [title]="'common.emptyTitle'|t" [message]="'common.emptyMsg'|t" -->
+
+    <!-- ============== Error state (nouveau unifié) ============== -->
+    <app-state-block
+      *ngIf="error"
+      icon="⚠️"
+      [title]="'Erreur'"
+      [message]="error"
+      [actionLabel]="'Réessayer'"
+      [action]="reload">
+    </app-state-block>
+    <!-- Avec i18n:
+         [title]="'common.errorTitle'|t" [actionLabel]="'common.retry'|t" -->
+
+    <!-- ============== Tableau (affiché uniquement si OK + data) ============== -->
+    <div class="table-responsive" *ngIf="!loading && !error && hasData">
+      <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z1 w-100" aria-label="Tableau des runs">
+
+        <!-- Date -->
+        <ng-container matColumnDef="startTime">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
+          <td mat-cell *matCellDef="let r"> {{ r.startTime | date:'short' }} </td>
+        </ng-container>
+
+        <!-- Flux -->
+        <ng-container matColumnDef="flowType">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Flux </th>
+          <td mat-cell *matCellDef="let r" class="fw-medium"> {{ r.flowType }} </td>
+        </ng-container>
+
+        <!-- Statut -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Statut </th>
+          <td mat-cell *matCellDef="let r">
+            <span class="badge fw-semibold"
+              [ngClass]="{
+                'text-bg-success': r.status==='SUCCESS' && !r.dryRun,
+                'text-bg-info':    r.status==='SUCCESS' &&  r.dryRun,
+                'text-bg-danger':  r.status==='FAILED',
+                'text-bg-warning text-dark': r.status==='RUNNING',
+                'text-bg-secondary': r.status==='PENDING'
+              }">
+              {{ r.status }}<ng-container *ngIf="r.dryRun"> (dry)</ng-container>
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Lignes -->
+        <ng-container matColumnDef="rows">
+          <th mat-header-cell *matHeaderCellDef> Lignes </th>
+          <td mat-cell *matCellDef="let r">
+            {{ r.rowsIn || 0 }} / {{ r.rowsOut || 0 }} / {{ r.rowsError || 0 }}
+          </td>
+        </ng-container>
+
+        <!-- Durée -->
+        <ng-container matColumnDef="duration">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Durée </th>
+          <td mat-cell *matCellDef="let r"> {{ msToHuman(r.durationMs) }} </td>
+        </ng-container>
+
+        <!-- Sensibilité -->
+        <ng-container matColumnDef="sensitivity">
+          <th mat-header-cell *matHeaderCellDef> Sensibilité </th>
+          <td mat-cell *matCellDef="let r">
+            <ng-container *ngIf="r?.dataset?.sensitivity as sens; else noSens">
+              <app-sensitivity-badge [value]="sens"></app-sensitivity-badge>
+            </ng-container>
+            <ng-template #noSens><span class="text-muted">—</span></ng-template>
+          </td>
+        </ng-container>
+
+        <!-- Légal -->
+        <ng-container matColumnDef="legal">
+          <th mat-header-cell *matHeaderCellDef> Légal </th>
+          <td mat-cell *matCellDef="let r">
+            <ng-container *ngIf="r?.dataset?.legal as legals; else noLegal">
+              <app-legal-badges [tags]="legals"></app-legal-badges>
+            </ng-container>
+            <ng-template #noLegal><span class="text-muted">—</span></ng-template>
+          </td>
+        </ng-container>
+
+        <!-- Actions -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="text-end"> Actions </th>
+          <td mat-cell *matCellDef="let r" class="text-end">
+            <input type="checkbox"
+                   [checked]="selectedIds.has(r.id)"
+                   (change)="toggleSelect(r.id, $any($event.target).checked)"
+                   [disabled]="loading"
+                   aria-label="Sélectionner ce run pour comparaison" />
+
+            <a class="btn btn-light btn-sm me-1" [routerLink]="['/runs', r.id]" aria-label="Voir le run">Voir</a>
+
+            <!-- Retry paramétré -->
+            <button class="btn btn-sm btn-outline-dark me-1"
+                    (click)="openRetryAdvanced(r.id)" [disabled]="loading"
+                    aria-label="Relance avancée">
+              Avancé
+            </button>
+
+            <!-- Retry simple -->
+            <button class="btn btn-sm"
+                    [ngClass]="{ 'btn-danger': r.status==='FAILED', 'btn-outline-primary': r.status!=='FAILED' }"
+                    (click)="retry(r.id)"
+                    [disabled]="r.status==='RUNNING' || loading"
+                    aria-label="Relancer simplement ce run">
+              Retry simple
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+  mat-row
+  *matRowDef="let row; columns: displayedColumns;"
+  [ngClass]="{
+    'tr-failed': row.status === 'FAILED',
+    'tr-running': row.status === 'RUNNING'
+  }">
+</tr>
+      </table>
+    </div>
+
+    <div class="card-footer bg-transparent py-2">
+      <mat-paginator
+        class="runs-paginator"
+        [pageSize]="10"
+        [pageSizeOptions]="[5,10,25,50]"
+        showFirstLastButtons
+        aria-label="Pagination">
+      </mat-paginator>
+    </div>
+  </div>
+</div>
+
+<!-- Toast (succès) -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:1080">
+  <div class="toast align-items-center text-bg-success" role="alert" [class.show]="toastOk" autohide="true" aria-live="polite">
+    <div class="d-flex">
+      <div class="toast-body">{{ toastMsg }}</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="toastOk=false" aria-label="Fermer la notification"></button>
+    </div>
+  </div>
+</div>

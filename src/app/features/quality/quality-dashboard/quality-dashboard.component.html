@@ -1,0 +1,253 @@
+<!-- src/app/features/quality/quality-dashboard.component.html -->
+
+<div class="container-fluid py-2 qdash">
+
+  <!-- 🎛 HERO sombre comme la page Import -->
+  <div class="qdash-header mb-3">
+    <div class="qdash-header__left">
+      <div class="qdash-header__pill">Qualité · Dashboard</div>
+      <h3 class="qdash-header__title mb-1">Dashboard Qualité</h3>
+      <p class="qdash-header__subtitle mb-0">
+        Suivi des erreurs, de la fraîcheur et de la complétude sur les datasets
+        opérationnels (Coca-Cola, Viaposte, Talys…).
+      </p>
+    </div>
+
+    <div class="qdash-header__right">
+      <div class="qdash-header__range d-flex align-items-center gap-2">
+        <label class="form-label me-1 mb-0 small text-muted">Période</label>
+        <select
+          class="form-select form-select-sm"
+          [ngModel]="range()"
+          (ngModelChange)="onChangeRange($event)"
+        >
+          <option [ngValue]="'7d'">7 derniers jours</option>
+          <option [ngValue]="'30d'">30 derniers jours</option>
+        </select>
+      </div>
+
+      <div *ngIf="summary() as s" class="qdash-header__badge small">
+        <span class="dot"></span>
+        Mis à jour
+        <ng-container *ngIf="s.lastUpdated; else liveNow">
+          le {{ s.lastUpdated | date : 'short' }}
+        </ng-container>
+        <ng-template #liveNow> à la dernière exécution des jobs </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <!-- ❗ Erreur -->
+  <div
+    *ngIf="error()"
+    class="alert alert-danger d-flex align-items-center justify-content-between mb-3"
+    role="alert"
+  >
+    <div>⚠ {{ error() }}</div>
+    <button
+      class="btn btn-sm btn-outline-light"
+      (click)="loadAll(range())"
+    >
+      Réessayer
+    </button>
+  </div>
+
+  <!-- ⏳ Loader -->
+  <div *ngIf="loading() && !error()" class="qdash-loading mb-3">
+    <div class="qdash-loading__bar"></div>
+  </div>
+
+  <!-- 📊 Tuiles KPI -->
+  <div class="row g-3 mb-3 qdash-kpis" *ngIf="summary() as s">
+    <!-- Error rate -->
+    <div class="col-12 col-lg-4">
+      <div class="qdash-kpi-card h-100">
+        <div class="qdash-kpi-card__body">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <div class="qdash-kpi-card__label">Error rate</div>
+              <div
+                class="qdash-kpi-card__value h4 mb-1"
+                [ngClass]="clsErrorRate(s.error_rate)"
+              >
+                {{ s.error_rate | percent : '1.0-2' }}
+              </div>
+              <div class="qdash-kpi-card__hint">
+                Lignes invalides sur le total contrôlé.
+              </div>
+            </div>
+            <svg
+              width="220"
+              height="46"
+              viewBox="0 0 220 46"
+              *ngIf="seriesErr()?.points as pts"
+            >
+              <path
+                [attr.d]="pathSpark(pts)"
+                class="qdash-spark"
+              ></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Freshness -->
+    <div class="col-12 col-lg-4">
+      <div class="qdash-kpi-card h-100">
+        <div class="qdash-kpi-card__body">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <div class="qdash-kpi-card__label">Fraîcheur (min)</div>
+              <div
+                class="qdash-kpi-card__value h4 mb-1"
+                [ngClass]="clsFreshMin(s.freshness_min)"
+              >
+                {{ s.freshness_min | number : '1.0-0' }} min
+              </div>
+              <div class="qdash-kpi-card__hint">
+                Délai moyen entre génération des données et disponibilité.
+              </div>
+            </div>
+            <svg
+              width="220"
+              height="46"
+              viewBox="0 0 220 46"
+              *ngIf="seriesFresh()?.points as pts"
+            >
+              <path
+                [attr.d]="pathSpark(pts)"
+                class="qdash-spark"
+              ></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Null rate -->
+    <div class="col-12 col-lg-4">
+      <div class="qdash-kpi-card h-100">
+        <div class="qdash-kpi-card__body">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <div class="qdash-kpi-card__label">% Null</div>
+              <div
+                class="qdash-kpi-card__value h4 mb-1"
+                [ngClass]="clsNullRate(s.null_rate)"
+              >
+                {{ s.null_rate | percent : '1.0-2' }}
+              </div>
+              <div class="qdash-kpi-card__hint">
+                Taux de valeurs manquantes sur les champs critiques.
+              </div>
+            </div>
+            <svg
+              width="220"
+              height="46"
+              viewBox="0 0 220 46"
+              *ngIf="seriesNull()?.points as pts"
+            >
+              <path
+                [attr.d]="pathSpark(pts)"
+                class="qdash-spark"
+              ></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔥 Heatmap -->
+  <div class="qdash-panel" *ngIf="heatmap() as hm">
+    <div class="qdash-panel__head">
+      <div>
+        <h6 class="mb-0">Heatmap qualité (datasets × checks)</h6>
+        <div class="qdash-panel__subtitle">
+          Priorisation visuelle des risques par dataset et par règle qualité.
+        </div>
+      </div>
+      <div class="qdash-panel__legend small text-muted">
+        0 → OK, 1 → critique
+      </div>
+    </div>
+
+    <div class="qdash-panel__body">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle heatmap-table mb-2">
+          <thead class="table-light">
+            <tr>
+              <th>Dataset</th>
+              <th
+                *ngFor="let ck of hm.checks"
+                class="text-center"
+              >
+                {{ ck }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ds of hm.datasets">
+              <th class="text-nowrap">
+                <a
+                  href
+                  (click)="$event.preventDefault(); openProfile(ds, 'id')"
+                  class="qdash-ds-link"
+                >
+                  {{ ds }}
+                </a>
+              </th>
+              <td
+                *ngFor="let ck of hm.checks"
+                class="text-center heat-cell"
+                [ngClass]="getHeatClass(hm, ds, ck)"
+                [title]="(getHeatValue(hm, ds, ck) | percent : '1.0-0')"
+                (click)="openProfile(ds, ck)"
+              >
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="qdash-legend small">
+        Légende :
+        <span class="badge bg-success">OK</span>
+        <span class="badge bg-warning text-dark">WARN</span>
+        <span class="badge bg-danger">CRIT</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🎯 Sélecteur de dataset pour les règles qualité -->
+  <div class="qdash-panel qdash-panel--inline mt-3" *ngIf="heatmap() as hm">
+    <div class="qdash-panel__body d-flex flex-wrap align-items-center gap-2">
+      <span class="text-muted small">
+        Dataset pour les règles qualité détaillées :
+      </span>
+      <select
+        class="form-select form-select-sm"
+        style="max-width: 260px"
+        [ngModel]="selectedDataset()"
+        (ngModelChange)="onSelectDataset($event)"
+      >
+        <option *ngFor="let ds of hm.datasets" [ngValue]="ds">
+          {{ ds }}
+        </option>
+      </select>
+      <span
+        *ngIf="selectedUrn()"
+        class="qdash-urn small text-muted mono"
+      >
+        {{ selectedUrn() }}
+      </span>
+    </div>
+  </div>
+
+  <!-- ✅ Règles qualité détaillées -->
+  <app-quality-tests
+    *ngIf="selectedUrn()"
+    [urn]="selectedUrn()!">
+  </app-quality-tests>
+</div>

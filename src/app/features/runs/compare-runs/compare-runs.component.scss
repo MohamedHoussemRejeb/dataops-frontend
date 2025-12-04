@@ -1,0 +1,167 @@
+:host {
+  display: block;
+  padding: 1.5rem;
+  background: #f5f7fb;
+  color: #111827;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+}
+
+.runs-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ===== HEADER / HERO ===== */
+
+.compare-header {
+  padding: 14px 18px;
+  border-radius: 16px;
+  margin-bottom: 0;
+
+  background: linear-gradient(
+    135deg,
+    #212631 0%,
+    #1e293b 45%,
+    #020617 100%
+  );
+  color: #f9fafb;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.35);
+}
+
+.compare-header__text h4 {
+  margin: 0;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.compare-header__text small {
+  display: block;
+  margin-top: 2px;
+}
+
+.text-muted-override {
+  color: rgba(226, 232, 240, 0.9) !important;
+  font-size: 0.86rem;
+}
+
+.btn-return {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.85);
+  background: rgba(15, 23, 42, 0.1);
+  color: #e5e7eb;
+  font-size: 0.86rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.05s ease,
+    border-color 0.15s ease;
+}
+
+.btn-return:hover {
+  background: rgba(15, 23, 42, 0.22);
+  border-color: #e5e7eb;
+  transform: translateY(-0.5px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.35);
+}
+
+/* ===== Typo monospace pour messages ===== */
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', monospace;
+}
+
+/* ===== Cartes A/B ===== */
+
+.compare-card {
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.compare-card .card-header {
+  background-color: #f9fafb;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.compare-card .card-body {
+  padding: 0.9rem 1rem 1rem;
+}
+
+.compare-pill {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+.compare-pill-a {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.compare-pill-b {
+  background: #fce7f3;
+  color: #be185d;
+}
+
+.compare-dl dt {
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.compare-dl dd {
+  margin-bottom: 0.25rem;
+}
+
+/* ===== Table diff ===== */
+
+.compare-table tbody tr td:first-child {
+  font-weight: 500;
+  color: #374151;
+}
+
+.compare-table tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+/* deltaClass() côté TS gère text-success / text-danger / etc.
+   Ici on uniformise juste la taille de police. */
+.compare-table td {
+  font-size: 0.85rem;
+}
+
+/* ===== Chart ===== */
+
+.compare-chart-wrapper {
+  height: 260px;
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 767.98px) {
+  .compare-card .card-body {
+    padding-inline: 0.75rem;
+  }
+
+  .compare-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 8px;
+  }
+
+  .btn-return {
+    align-self: stretch;
+    justify-content: center;
+  }
+}

@@ -1,0 +1,234 @@
+<!-- src/app/features/lineage/column-admin/column-admin.component.html -->
+
+<div class="ca-page">
+  <!-- 🧭 HERO SOMBRE -->
+  <header class="ca-hero">
+    <div class="ca-hero__titles">
+      <div class="ca-hero__chip">Column lineage admin</div>
+      <h1 class="ca-hero__title">Administration des colonnes &amp; lineage</h1>
+      <p class="ca-hero__subtitle">
+        Gestion des colonnes, de leur sensibilité et des liens de lineage pour le dataset
+        <strong>#{{ datasetId }}</strong>.
+      </p>
+    </div>
+
+    <div class="ca-hero__meta">
+      <span class="ca-hero__badge">
+        Dataset ID&nbsp;: <span class="mono">#{{ datasetId }}</span>
+      </span>
+    </div>
+  </header>
+
+  <!-- ⚠️ Erreur -->
+  <div *ngIf="errorMsg" class="ca-alert">
+    {{ errorMsg }}
+  </div>
+
+  <!-- 📦 GRID 2 COLONNES -->
+  <section class="ca-grid">
+    <!-- 🔹 Colonnes -->
+    <section class="ca-card ca-card--columns">
+      <div class="ca-card__head">
+        <div>
+          <h2>Colonnes du dataset</h2>
+          <p>Définis le schéma logique et la sensibilité des colonnes.</p>
+        </div>
+        <button type="button" class="ca-btn ca-btn--ghost" (click)="startCreateColumn()">
+          + Nouvelle colonne
+        </button>
+      </div>
+
+      <!-- FORM COLONNE -->
+      <form (ngSubmit)="saveColumn()" class="ca-form ca-form--cols">
+        <div class="ca-field">
+          <label class="ca-label">Nom <span class="req">*</span></label>
+          <input
+            class="ca-input"
+            [(ngModel)]="editColumn.name"
+            name="colName"
+            required
+          />
+        </div>
+
+        <div class="ca-field">
+          <label class="ca-label">Type</label>
+          <input
+            class="ca-input"
+            [(ngModel)]="editColumn.type"
+            name="colType"
+            placeholder="string, int, date…"
+          />
+        </div>
+
+        <div class="ca-field">
+          <label class="ca-label">Sensibilité</label>
+          <input
+            class="ca-input"
+            [(ngModel)]="editColumn.sensitivity"
+            name="colSens"
+            placeholder="PII, CONFIDENTIAL…"
+          />
+        </div>
+
+        <div class="ca-actions-inline">
+          <button type="submit" class="ca-btn ca-btn--primary">
+            {{ isEditingColumn ? 'Mettre à jour' : 'Ajouter' }}
+          </button>
+        </div>
+      </form>
+
+      <!-- TABLE COLONNES -->
+      <div class="ca-table-wrap">
+        <table class="ca-table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Type</th>
+              <th>Sensibilité</th>
+              <th class="ca-table__actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of columns">
+              <td>{{ c.name }}</td>
+              <td>{{ c.type || '—' }}</td>
+              <td>{{ c.sensitivity || '—' }}</td>
+              <td class="ca-table__actions">
+                <button
+                  type="button"
+                  class="ca-btn ca-btn--icon"
+                  (click)="startEditColumn(c)"
+                  title="Éditer"
+                >
+                  ✏️
+                </button>
+                <button
+                  type="button"
+                  class="ca-btn ca-btn--icon ca-btn--danger"
+                  (click)="deleteColumn(c)"
+                  title="Supprimer"
+                >
+                  🗑️
+                </button>
+              </td>
+            </tr>
+
+            <tr *ngIf="!columns.length">
+              <td colspan="4" class="ca-empty">
+                Aucune colonne définie pour ce dataset.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 🔹 Edges / liens -->
+    <section class="ca-card ca-card--edges">
+      <div class="ca-card__head">
+        <div>
+          <h2>Liens de colonnes (lineage)</h2>
+          <p>
+            Déclare les relations entre colonnes (copy, derive, join…) pour le lineage
+            colonne.
+          </p>
+        </div>
+        <button type="button" class="ca-btn ca-btn--ghost" (click)="startCreateEdge()">
+          + Nouveau lien
+        </button>
+      </div>
+
+      <!-- FORM EDGE -->
+      <form (ngSubmit)="saveEdge()" class="ca-form ca-form--edges">
+        <div class="ca-field">
+          <label class="ca-label">Source</label>
+          <select
+            class="ca-input"
+            [(ngModel)]="editEdge.fromColumnId"
+            name="edgeFrom"
+          >
+            <option [ngValue]="0">-- colonne source --</option>
+            <option *ngFor="let c of columns" [ngValue]="c.id">
+              {{ c.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="ca-field">
+          <label class="ca-label">Cible</label>
+          <select
+            class="ca-input"
+            [(ngModel)]="editEdge.toColumnId"
+            name="edgeTo"
+          >
+            <option [ngValue]="0">-- colonne cible --</option>
+            <option *ngFor="let c of columns" [ngValue]="c.id">
+              {{ c.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="ca-field">
+          <label class="ca-label">Type</label>
+          <input
+            class="ca-input"
+            [(ngModel)]="editEdge.kind"
+            name="edgeKind"
+            placeholder="copy, derive…"
+          />
+        </div>
+
+        <div class="ca-actions-inline">
+          <button type="submit" class="ca-btn ca-btn--primary">
+            {{ isEditingEdge ? 'Mettre à jour' : 'Ajouter' }}
+          </button>
+        </div>
+      </form>
+
+      <!-- TABLE EDGES -->
+      <div class="ca-table-wrap">
+        <table class="ca-table">
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Cible</th>
+              <th>Type</th>
+              <th class="ca-table__actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of edges">
+              <td>{{ columnLabel(e.fromColumnId) }}</td>
+              <td>{{ columnLabel(e.toColumnId) }}</td>
+              <td>{{ e.kind }}</td>
+              <td class="ca-table__actions">
+                <button
+                  type="button"
+                  class="ca-btn ca-btn--icon"
+                  (click)="startEditEdge(e)"
+                  title="Éditer"
+                >
+                  ✏️
+                </button>
+                <button
+                  type="button"
+                  class="ca-btn ca-btn--icon ca-btn--danger"
+                  (click)="deleteEdge(e)"
+                  title="Supprimer"
+                >
+                  🗑️
+                </button>
+              </td>
+            </tr>
+
+            <tr *ngIf="!edges.length">
+              <td colspan="4" class="ca-empty">
+                Aucun lien défini pour ce dataset.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+</div>

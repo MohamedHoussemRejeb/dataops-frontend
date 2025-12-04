@@ -1,0 +1,130 @@
+<div class="wrap">
+  <header class="toolbar">
+    <div class="title">
+      <h2>Data Lineage — vue avancée</h2>
+
+      <div class="dataset-summary" *ngIf="dataset(); else allDatasets">
+        <div class="ds-name">
+          {{ dataset()!.name || dataset()!.id }}
+        </div>
+        <div class="ds-meta">
+          <span class="muted" *ngIf="dataset()!.domain">
+            Domaine : <b>{{ dataset()!.domain }}</b>
+          </span>
+          <span class="sep" *ngIf="dataset()!.domain && dataset()!.owner?.name">•</span>
+          <span class="muted" *ngIf="dataset()!.owner?.name">
+            Owner : <b>{{ dataset()!.owner?.name }}</b>
+          </span>
+          <app-trust-badge
+            class="trust"
+            [value]="dataset()!.trust ?? null">
+          </app-trust-badge>
+        </div>
+      </div>
+
+      <ng-template #allDatasets>
+        <div class="ds-name">Tous les datasets</div>
+        <div class="muted">
+          Graphes fusionnés ({{ rawNodes().length }} nœuds)
+        </div>
+      </ng-template>
+    </div>
+
+    <div class="actions">
+      <input
+        class="search"
+        type="search"
+        placeholder="Rechercher…"
+        [ngModel]="q()"
+        (ngModelChange)="q.set($event)" />
+
+      <select
+        class="select"
+        [ngModel]="layerFilter()"
+        (ngModelChange)="layerFilter.set($event)">
+        <option value="all">Toutes couches</option>
+        <option *ngFor="let l of layers" [value]="l">
+          {{ l | titlecase }}
+        </option>
+      </select>
+
+      <select
+        class="select"
+        [ngModel]="statusFilter()"
+        (ngModelChange)="statusFilter.set($event)">
+        <option value="all">Tous statuts</option>
+        <option *ngFor="let s of statuses" [value]="s">
+          {{ s }}
+        </option>
+      </select>
+
+      <label class="toggle">
+        <input
+          type="checkbox"
+          [checked]="showOnlyPath()"
+          (change)="showOnlyPath.set($any($event.target).checked)" />
+        Chemin sélectionné uniquement
+      </label>
+
+      <button class="btn" type="button" (click)="fit()">Ajuster vue</button>
+      <button class="btn" type="button" (click)="layoutBreadth()">Layout breadthfirst</button>
+      <button class="btn" type="button" (click)="layoutDagre()">Layout hiérarchique</button>
+      <button class="btn" type="button" (click)="layoutCose()">Layout organique</button>
+    </div>
+  </header>
+
+  <div class="content" [class.has-side]="!!selectedNode()">
+    <aside class="side" *ngIf="selectedNode() as n">
+      <h3>{{ n.data('label') }}</h3>
+
+      <div class="kv">
+        <span>Layer</span>
+        <b>{{ n.data('layer') }}</b>
+      </div>
+
+      <div class="kv" *ngIf="n.data('domain')">
+        <span>Domain</span>
+        <b>{{ n.data('domain') }}</b>
+      </div>
+
+      <div class="kv" *ngIf="n.data('owner')">
+        <span>Owner</span>
+        <b>{{ n.data('owner') }}</b>
+      </div>
+
+      <div class="kv">
+        <span>Statut</span>
+        <b>{{ n.data('lastStatus') || 'UNKNOWN' }}</b>
+      </div>
+
+      <div class="kv" *ngIf="n.data('table')">
+        <span>Table</span>
+        <b>{{ n.data('table') }}</b>
+      </div>
+
+      <div class="kv" *ngIf="n.data('lastEndedAt')">
+        <span>Dernier run</span>
+        <b>{{ n.data('lastEndedAt') | date: 'short' }}</b>
+      </div>
+
+      <hr />
+
+      <div class="section">
+        <div class="label">Impact analysis</div>
+        <button class="btn" type="button" (click)="highlightUpstream()">Amont</button>
+        <button class="btn" type="button" (click)="highlightDownstream()">Aval</button>
+        <button class="btn" type="button" (click)="clearHighlights()">Tout</button>
+      </div>
+
+      <div class="section" *ngIf="(n.data('columns') || []).length">
+        <div class="label">Colonnes</div>
+        <ul class="cols">
+          <li *ngFor="let c of n.data('columns')">{{ c }}</li>
+        </ul>
+        <small class="muted">Lineage colonne simplifié</small>
+      </div>
+    </aside>
+
+    <div class="graph" #host></div>
+  </div>
+</div>

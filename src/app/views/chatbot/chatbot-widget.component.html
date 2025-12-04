@@ -1,0 +1,101 @@
+<div class="chatbot-floating">
+
+  <!-- Bouton flottant -->
+  <button class="chatbot-toggle" (click)="toggleOpen()">
+    <img src="assets/images/logo-house.png" alt="Assistant DataOps" />
+  </button>
+
+  <!-- Fenêtre -->
+  <div class="chatbot-panel" *ngIf="isOpen">
+    <div class="panel-card">
+      <!-- Header type Messenger -->
+      <div class="panel-header">
+        <div class="header-left">
+          <div class="header-avatar">
+            <img src="assets/images/logo-house.png" alt="Assistant" />
+          </div>
+          <div class="header-text">
+            <div class="header-title">Assistant DataOps</div>
+            <div class="header-status">
+              <span class="status-dot"></span>
+              En ligne · Digital Expert AI
+            </div>
+          </div>
+        </div>
+
+        <button class="header-close" (click)="toggleOpen()" aria-label="Fermer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Corps : messages -->
+      <div class="panel-body">
+        <div class="messages">
+
+          <!-- Bot message de bienvenue -->
+          <div class="message-row from-bot">
+            <div class="message-bubble bot">
+              <div class="message-text">
+                Bonjour 👋<br />
+                Je suis ton assistant DataOps.<br />
+                Pose-moi une question sur tes jobs Talend, la qualité des données
+                ou l’état de ta plateforme.
+              </div>
+              <div class="message-meta">Assistant · maintenant</div>
+            </div>
+          </div>
+
+          <!-- Message utilisateur -->
+          <div class="message-row from-user" *ngIf="prompt.trim()">
+            <div class="message-bubble user">
+              <div class="message-text">
+                {{ prompt }}
+              </div>
+              <div class="message-meta">Toi</div>
+            </div>
+          </div>
+
+          <!-- Réponse assistant -->
+          <div class="message-row from-bot" *ngIf="response">
+            <div class="message-bubble bot">
+              <div class="message-text">
+                {{ response }}
+              </div>
+              <div class="message-meta">Assistant</div>
+            </div>
+          </div>
+
+          <!-- Typing / chargement -->
+          <div class="message-row from-bot" *ngIf="loading">
+            <div class="message-bubble bot typing">
+              <div class="typing-dots">
+                <span></span><span></span><span></span>
+              </div>
+              <div class="message-meta">Assistant · en train d’écrire…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zone d’entrée -->
+      <div class="panel-input">
+        <input
+          [(ngModel)]="prompt"
+          (keyup.enter)="send()"
+          type="text"
+          class="input-text"
+          [disabled]="loading"
+          placeholder="Écris un message… (ex : Quels jobs ont échoué aujourd’hui ?)" />
+
+        <button
+          class="send-btn"
+          (click)="send()"
+          [disabled]="loading || !prompt.trim()">
+          <span *ngIf="!loading">Envoyer</span>
+          <span *ngIf="loading" class="loader-small"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

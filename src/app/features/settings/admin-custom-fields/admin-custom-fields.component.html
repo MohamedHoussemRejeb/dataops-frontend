@@ -1,0 +1,337 @@
+<div class="admin-custom-fields container py-3">
+  <!-- Page header -->
+  <div class="acf-page-header mb-4">
+    <div>
+      <h4 class="mb-1 d-flex align-items-center gap-2">
+        <span class="acf-badge-dot"></span>
+        Personnalisation — Champs & Templates
+      </h4>
+      <p class="text-muted mb-0">
+        Définis les champs métiers globaux et compose des templates réutilisables pour tes différents
+        types d’objets (CRM, DQ rules, jobs ETL…).
+      </p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 acf-header-stats">
+      <div class="acf-stat-pill">
+        <span class="label">Champs globaux</span>
+        <span class="value">{{ fields().length }}</span>
+      </div>
+      <div class="acf-stat-pill">
+        <span class="label">Templates</span>
+        <span class="value">{{ templates().length }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- 1) CHAMPS GLOBAUX     -->
+  <!-- ===================== -->
+  <div class="row g-4 mb-4">
+    <div class="col-12">
+      <div class="card acf-card h-100">
+        <div class="card-header acf-card-header d-flex align-items-center justify-content-between">
+          <div>
+            <h6 class="mb-0">Champs globaux</h6>
+            <small class="acf-subtext">Disponibles partout dans la plateforme</small>
+          </div>
+          <span class="badge rounded-pill acf-badge-count">
+            {{ fields().length }} champ{{ fields().length > 1 ? 's' : '' }}
+          </span>
+        </div>
+
+        <div class="card-body acf-card-body">
+
+          <!-- Liste des champs -->
+          <div class="acf-table-wrapper mb-3">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+              <tr>
+                <th>Key</th>
+                <th>Label</th>
+                <th>Type</th>
+                <th>Options</th>
+                <th class="text-center">Req.</th>
+                <th class="text-end"></th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr *ngFor="let f of fields()">
+                <td><span class="acf-mono key-pill">{{ f.key }}</span></td>
+                <td>{{ f.label }}</td>
+                <td><span class="badge acf-type-badge acf-type-{{ f.type }}">{{ f.type }}</span></td>
+                <td class="acf-options-cell">
+                  <span *ngFor="let opt of (f.options || [])" class="acf-option-chip">{{ opt }}</span>
+                  <span *ngIf="!(f.options && f.options.length)" class="text-muted">—</span>
+                </td>
+                <td class="text-center">
+                  <span class="acf-required-pill"
+                        [class.acf-required-yes]="f.required"
+                        [class.acf-required-no]="!f.required">
+                    {{ f.required ? '✓' : '—' }}
+                  </span>
+                </td>
+                <td class="text-end">
+                  <button type="button" class="btn btn-sm btn-outline-secondary me-1" (click)="editField(f)">
+                    Éditer
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeField(f.key)">
+                    Supprimer
+                  </button>
+                </td>
+              </tr>
+
+              <tr *ngIf="!fields().length">
+                <td colspan="6" class="text-muted text-center py-3">Aucun champ global défini pour le moment.</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Formulaire d’ajout / édition -->
+          <div class="acf-form-title d-flex align-items-center justify-content-between mb-2">
+            <div>
+              <span class="acf-form-label">{{ editMode() ? 'Éditer le champ' : 'Ajouter un champ' }}</span>
+              <small class="text-muted d-block">La <strong>key</strong> est technique.</small>
+            </div>
+
+            <span class="badge rounded-pill acf-mode-pill"
+                  [class.acf-mode-edit]="editMode()"
+                  [class.acf-mode-add]="!editMode()">
+              {{ editMode() ? 'Mode édition' : 'Mode ajout' }}
+            </span>
+          </div>
+
+          <form class="row g-2 acf-form" (ngSubmit)="saveField()">
+            <div class="col-md-3">
+              <label class="form-label form-label-sm">Key</label>
+              <input class="form-control form-control-sm"
+                     [(ngModel)]="fld.key"
+                     name="key" required
+                     [readonly]="editMode()"
+                     placeholder="ex: sla" />
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label form-label-sm">Label</label>
+              <input class="form-control form-control-sm"
+                     [(ngModel)]="fld.label"
+                     name="label" required
+                     placeholder="ex: SLA" />
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label form-label-sm">Type</label>
+              <select class="form-select form-select-sm"
+                      [(ngModel)]="fld.type"
+                      name="type" required>
+                <option value="text">text</option>
+                <option value="number">number</option>
+                <option value="select">select</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label form-label-sm">Options (si select)</label>
+              <input class="form-control form-control-sm"
+                     [(ngModel)]="opts"
+                     name="opts"
+                     [disabled]="fld.type !== 'select'"
+                     placeholder="val1 | val2 | val3" />
+            </div>
+
+            <div class="col-md-3 d-flex align-items-center">
+              <div class="form-check acf-form-check">
+                <input type="checkbox"
+                       class="form-check-input"
+                       id="req"
+                       name="req"
+                       [(ngModel)]="fld.required">
+                <label class="form-check-label" for="req">Obligatoire</label>
+              </div>
+            </div>
+
+            <div class="col-md-3 text-end">
+              <button class="btn btn-primary btn-sm w-100 acf-submit-btn">
+                {{ editMode() ? 'Mettre à jour' : 'Ajouter' }}
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- 2) TEMPLATES (EN BAS) -->
+  <!-- ===================== -->
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card acf-card">
+
+        <div class="card-header acf-card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <div>
+            <h6 class="mb-0">Templates</h6>
+            <small class="acf-subtext">
+              Collections de champs réutilisables par type d’objet (CRM, DQ rules…)
+            </small>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2 acf-template-add">
+            <input class="form-control form-control-sm"
+                   style="width: 140px"
+                   placeholder="id (crm…)"
+                   [(ngModel)]="tpl.id"
+                   name="tid" />
+            <input class="form-control form-control-sm"
+                   style="width: 200px"
+                   placeholder="Nom du template"
+                   [(ngModel)]="tpl.name"
+                   name="tname" />
+
+            <button type="button"
+                    class="btn btn-sm btn-primary"
+                    (click)="addTemplate()">
+              + Ajouter
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body acf-card-body">
+
+          <!-- Liste des templates -->
+          <div *ngFor="let t of templates()" class="acf-template-block mb-3">
+
+            <div class="acf-template-header d-flex align-items-center justify-content-between mb-2">
+              <div>
+                <div class="d-flex align-items-center gap-2">
+                  <strong>{{ t.name }}</strong>
+                  <span class="badge acf-template-id-pill">{{ t.id }}</span>
+                </div>
+                <small class="text-muted">
+                  {{ t.fields.length }} champ{{ t.fields.length > 1 ? 's' : '' }} dans ce template
+                </small>
+              </div>
+
+              <button type="button"
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="removeTemplate(t.id)">
+                Supprimer le template
+              </button>
+            </div>
+
+            <div class="acf-table-wrapper mb-2">
+              <table class="table table-sm align-middle mb-0">
+                <thead>
+                <tr>
+                  <th>Key</th>
+                  <th>Label</th>
+                  <th>Type</th>
+                  <th>Options</th>
+                  <th class="text-center">Req.</th>
+                  <th class="text-end"></th>
+                </tr>
+                </thead>
+                <tbody>
+
+                <tr *ngFor="let f of t.fields">
+                  <td><span class="acf-mono key-pill">{{ f.key }}</span></td>
+                  <td>{{ f.label }}</td>
+                  <td><span class="badge acf-type-badge acf-type-{{ f.type }}">{{ f.type }}</span></td>
+                  <td class="acf-options-cell">
+                    <span *ngFor="let opt of (f.options || [])" class="acf-option-chip">{{ opt }}</span>
+                    <span *ngIf="!(f.options && f.options.length)" class="text-muted">—</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="acf-required-pill"
+                          [class.acf-required-yes]="f.required"
+                          [class.acf-required-no]="!f.required">
+                      {{ f.required ? '✓' : '—' }}
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <button class="btn btn-sm btn-outline-danger"
+                            (click)="removeTemplateField(t.id,f.key)">
+                      Suppr.
+                    </button>
+                  </td>
+                </tr>
+
+                <tr *ngIf="!t.fields.length">
+                  <td colspan="6" class="text-muted text-center py-2">
+                    Aucun champ dans ce template.
+                  </td>
+                </tr>
+
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Form Ajout champ -->
+            <form class="row g-2 acf-form-template" (ngSubmit)="addTemplateField(t.id)">
+              <div class="col-md-3">
+                <label class="form-label form-label-sm">Key</label>
+                <input class="form-control form-control-sm"
+                       [(ngModel)]="tf.key"
+                       name="tfk_{{t.id}}"
+                       required />
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label form-label-sm">Label</label>
+                <input class="form-control form-control-sm"
+                       [(ngModel)]="tf.label"
+                       name="tfl_{{t.id}}"
+                       required />
+              </div>
+
+              <div class="col-md-2">
+                <label class="form-label form-label-sm">Type</label>
+                <select class="form-select form-select-sm"
+                        [(ngModel)]="tf.type"
+                        name="tft_{{t.id}}" required>
+                  <option value="text">text</option>
+                  <option value="number">number</option>
+                  <option value="select">select</option>
+                </select>
+              </div>
+
+              <div class="col-md-3">
+                <label class="form-label form-label-sm">Options</label>
+                <input class="form-control form-control-sm"
+                       [(ngModel)]="tOpts"
+                       name="tfo_{{t.id}}"
+                       [disabled]="tf.type !== 'select'"
+                       placeholder="low | medium | high" />
+              </div>
+
+              <div class="col-md-3 d-flex align-items-center mt-1 mt-md-4">
+                <div class="form-check acf-form-check">
+                  <input type="checkbox"
+                         class="form-check-input"
+                         [(ngModel)]="tf.required"
+                         name="tfr_{{t.id}}"
+                         id="tfr_{{t.id}}" />
+                  <label class="form-check-label" [for]="'tfr_' + t.id">Obligatoire</label>
+                </div>
+              </div>
+
+              <div class="col-md-3 mt-1 mt-md-4 ms-auto text-end">
+                <button class="btn btn-primary btn-sm w-100 acf-submit-btn">
+                  + Ajouter un champ
+                </button>
+              </div>
+            </form>
+
+          </div>
+
+          <div *ngIf="!templates().length" class="text-muted text-center py-3">
+            Aucun template pour le moment.
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,105 @@
+/* ===== CARD CONTAINER ===== */
+
+.powerbi-container {
+  border-radius: 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  background: #0b1120;
+  position: relative; // for fullscreen overlay
+}
+
+/* ===== HEADER ===== */
+
+.powerbi-header {
+  background: linear-gradient(
+    135deg,
+    #212631 0%,
+    #1e293b 45%,
+    #020617 100%
+  );
+  color: #e5e7eb;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+  padding: 0.75rem 1rem;
+}
+
+.powerbi-title {
+  font-weight: 600;
+}
+
+.powerbi-subtitle {
+  font-size: 0.8rem;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.powerbi-header__right {
+  justify-content: flex-end;
+}
+
+/* Buttons in header: pill style like .live-header */
+
+.powerbi-header .btn-group .btn,
+.powerbi-header .btn-group .btn:focus {
+  border-radius: 999px;
+  font-size: 0.78rem;
+  padding-inline: 0.9rem;
+  border-color: rgba(148, 163, 184, 0.6);
+}
+
+.powerbi-header .btn-group .btn:hover {
+  border-color: rgba(248, 250, 252, 0.9);
+}
+
+/* ===== BODY / IFRAME ===== */
+
+.powerbi-body {
+  background: radial-gradient(circle at top, #020617 0, #020617 40%, #020617 100%);
+}
+
+.powerbi-body iframe {
+  width: 100%;
+  height: calc(100vh - 180px); // adjust if needed based on header height
+  border: 0;
+}
+
+/* ===== FULLSCREEN MODE ===== */
+
+.powerbi-container.fullscreen {
+  position: fixed;
+  inset: 0; // top: 0; right: 0; bottom: 0; left: 0;
+  z-index: 1050;
+  border-radius: 0;
+  margin: 0;
+  box-shadow: none;
+
+  .powerbi-header {
+    border-radius: 0;
+  }
+
+  .powerbi-body {
+    height: calc(100vh - 3.5rem); // viewport - header height
+  }
+
+  .powerbi-body iframe {
+    height: 100%;
+  }
+}
+
+/* ===== RESPONSIVE HEADER (MOBILE) ===== */
+
+@media (max-width: 768px) {
+  .powerbi-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 0.35rem;
+  }
+
+  .powerbi-header__right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .powerbi-buttons {
+    flex-wrap: wrap;
+  }
+}
