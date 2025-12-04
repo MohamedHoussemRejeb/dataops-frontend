@@ -5,5 +5,5 @@ export const environment = {
     realm: 'dataops',
     clientId: 'dataops-angular'
   },
-  apiBaseUrl: 'https://dataops-api-backend.azurewebsites.net' // 👈 backend URL
+  apiBaseUrl: 'https://dataops-backendd-g2aabvb0c4f8a0c9.canadacentral-01.azurewebsites.net/api' // 👈 backend URL
 };
