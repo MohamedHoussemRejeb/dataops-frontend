@@ -5,5 +5,7 @@ export const environment = {
     realm: 'dataops',
     clientId: 'dataops-angular'
   },
-  apiBaseUrl: 'https://dataops-backendd-g2aabvb0c4f8a0c9.canadacentral-01.azurewebsites.net' // 👈 backend URL
+  // 🔹 Backend Spring Boot déployé sur Azure
+  //    → on inclut /api car tous tes contrôleurs sont sous /api/...
+  apiBaseUrl: 'https://dataops-backendd-g2aabvb0c4f8a0c9.canadacentral-01.azurewebsites.net/api'
 };

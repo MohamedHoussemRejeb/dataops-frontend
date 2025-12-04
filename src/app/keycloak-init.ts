@@ -5,10 +5,7 @@ export function initializeKeycloak(keycloak: KeycloakService) {
   return () =>
     keycloak.init({
       config: {
-        url:
-          window.location.hostname === 'localhost'
-            ? 'http://localhost:8181' // Keycloak local
-            : 'https://keycloak01-cyepgyeje2hadygd.canadacentral-01.azurewebsites.net',
+        url:'https://keycloak01-cyepgyeje2hadygd.canadacentral-01.azurewebsites.net',
         realm: 'dataops',
         clientId: 'dataops-angular',
       },
