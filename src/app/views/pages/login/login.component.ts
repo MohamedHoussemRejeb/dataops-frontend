@@ -19,6 +19,7 @@ import {
   InputGroupTextDirective,
   RowComponent
 } from '@coreui/angular';
+import { environment } from '../../../../environments/environment';
 
 interface KeycloakTokenResponse {
   access_token: string;
@@ -53,11 +54,9 @@ export class LoginComponent {
   // 👁️ show/hide password
   showPassword = false;
 
-  // URL Keycloak
-  private tokenUrl =
-    'http://localhost:8181/realms/dataops/protocol/openid-connect/token';
-
-  private clientId = 'dataops-angular';
+  // URL & clientId Keycloak pris depuis environment
+  private tokenUrl = environment.keycloakTokenUrl;
+  private clientId = environment.keycloakClientId;
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
@@ -89,7 +88,6 @@ export class LoginComponent {
         throw new Error('Empty token response');
       }
 
-      // Sauvegarde du token
       localStorage.setItem('access_token', tokenResponse.access_token);
       localStorage.setItem('refresh_token', tokenResponse.refresh_token);
 
