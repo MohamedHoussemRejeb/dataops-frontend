@@ -12,6 +12,7 @@ import {
   Trigger,
   RunMetadata
 } from '../models/etl-run';
+import { environment } from '../../../environments/environment';
 
 // Basic Auth helper
 function basicAuthHeader(user: string, pass: string): HttpHeaders {
@@ -21,7 +22,7 @@ function basicAuthHeader(user: string, pass: string): HttpHeaders {
 
 @Injectable({ providedIn: 'root' })
 export class RunsApiService {
-  private baseUrl = 'http://localhost:8083/api/etl/runs';
+  private baseUrl = `${environment.apiBaseUrl}/api/etl/runs`;
   private headers = basicAuthHeader('admin', 'admin');
 
   constructor(private http: HttpClient) {}

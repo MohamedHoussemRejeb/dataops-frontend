@@ -3,6 +3,7 @@ import { CommonModule, NgIf, NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { StateBlockComponent } from '../../../shared/ui/states/state-block.component';
+import { environment } from '../../../../environments/environment';
 
 // Modèle enrichi avec la santé de la source
 interface SourceHealth {
@@ -37,8 +38,8 @@ export class SourcesListComponent implements OnInit {
   private http = inject(HttpClient);
 
   // ⚠ adapte si besoin (variable d'env, proxy, etc.)
-  private baseUrl = 'http://localhost:8083/api/source-health';
-  private importUrl = 'http://localhost:8083/api/sources/import-context'; // endpoint à créer côté backend
+  private baseUrl = `${environment.apiBaseUrl}/source-health`;
+  private importUrl = `${environment.apiBaseUrl}/sources/import-context`; // endpoint à créer côté backend
 
   loading    = signal(true);
   error      = signal<string | null>(null);

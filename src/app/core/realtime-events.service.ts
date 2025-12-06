@@ -2,6 +2,7 @@
 import { Injectable, signal } from '@angular/core';
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { environment } from '../../environments/environment';
 
 export interface RealtimeEvent {
   type: string;
@@ -22,7 +23,7 @@ export class RealtimeEventsService {
   // Pour gérer ON/OFF auto-refresh global
   autoRefresh = signal<boolean>(true);
 
-  connect(apiBaseUrl: string = 'http://localhost:8083') {
+  connect(apiBaseUrl: string = `${environment.apiBaseUrl}`) {
     if (this.client && this.client.active) {
       return;
     }

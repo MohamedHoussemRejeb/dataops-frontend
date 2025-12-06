@@ -26,7 +26,7 @@ export class NotificationService {
 
   /**
    * Connexion au backend WebSocket.
-   * Utilise environment.apiBaseUrl, ex: 'http://localhost:8083/api'
+
    */
   connect(apiBaseUrl: string = environment.apiBaseUrl) {
     // évite les doubles connexions

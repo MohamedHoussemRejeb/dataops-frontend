@@ -52,7 +52,7 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const apiBaseUrl = environment.apiBaseUrl; // ex: 'http://localhost:8083'
+    const apiBaseUrl = environment.apiBaseUrl;
 
     // ✅ Connexions temps réel déclenchées une seule fois
     this.realtime.connect(apiBaseUrl);

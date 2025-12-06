@@ -15,7 +15,6 @@ export interface AccessMatrixQuery {
 
 @Injectable({ providedIn: 'root' })
 export class AccessApiService {
-  /** Base = http://localhost:8083/api/governance (en dev) */
   private base = `${environment.apiBaseUrl}/governance`;
 
   constructor(private http: HttpClient) {}

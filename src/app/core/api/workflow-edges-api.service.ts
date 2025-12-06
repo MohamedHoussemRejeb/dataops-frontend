@@ -13,7 +13,7 @@ export class WorkflowEdgesApiService {
   // private baseUrl = `${environment.apiBaseUrl}/api/workflow-edges`;
 
   // ✅ APRES : on enlève le /api en trop
-  // comme apiBaseUrl = "http://localhost:8083/api"
+
   private baseUrl = `${environment.apiBaseUrl}/workflow-edges`;
 
   list(): Observable<WorkflowEdge[]> {

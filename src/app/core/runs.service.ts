@@ -11,6 +11,7 @@ import {
 } from 'rxjs';
 import { EtlRun, FlowType, Status, Trigger } from './models/etl-run';
 import { RetryParams } from './models/retry-params';
+import { environment } from '../../environments/environment';
 
 // Logs live simulés côté front
 export type LogLevel = 'INFO' | 'WARN' | 'ERROR';
@@ -24,7 +25,7 @@ export interface LiveLog {
 export class RunsService {
 
   // adapte si besoin : port/chemin de ton Spring
-  private baseUrl = 'http://localhost:8083/api/etl/runs';
+  private baseUrl = `${environment.apiBaseUrl}/etl/runs`;
 
   // cache courant (toujours au format FRONT EtlRun)
   private runs$ = new BehaviorSubject<EtlRun[]>([]);

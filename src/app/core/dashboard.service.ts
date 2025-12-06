@@ -67,7 +67,7 @@ export interface TimeseriesResponse {
 export class DashboardService {
   private http = inject(HttpClient);
 
-  // API base URL (ex: http://localhost:8083/api/dashboard)
+
   private baseUrl = `${environment.apiBaseUrl}/dashboard`;
 
   // --- Résumé global (KPI, top datasets, domaines...)

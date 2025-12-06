@@ -79,7 +79,6 @@ const DEFAULTS: AppSettings = {
 
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
-  /** Base API: ex: http://localhost:8083/api/settings */
   private readonly api = `${environment.apiBaseUrl}/settings`;
 
   /** In-memory store – source for the whole front */

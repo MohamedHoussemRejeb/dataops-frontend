@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { EtlAlert } from '../models/alert';
+import { environment } from '../../../environments/environment';
 
 export interface AckRequest {
   ids: string[];
@@ -11,7 +12,7 @@ export interface AckRequest {
 
 @Injectable({ providedIn: 'root' })
 export class AlertsApiService {
-  private baseUrl = 'http://localhost:8083/api/alerts';
+  private baseUrl = `${environment.apiBaseUrl}/alerts`;
 
   constructor(private http: HttpClient) {}
 

@@ -15,7 +15,7 @@ import { environment } from '../../environments/environment';
 export class QualityService {
   private http = inject(HttpClient);
 
-  // environment.apiBaseUrl = 'http://localhost:8083/api'
+
   private baseQuality  = `${environment.apiBaseUrl}/quality`;
   private baseDatasets = `${environment.apiBaseUrl}/datasets`;
 

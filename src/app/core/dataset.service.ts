@@ -7,6 +7,7 @@ import { catchError, delay, map } from 'rxjs/operators';
 import { LineageGraph, Layer } from './models/lineage';
 import { Dataset, Owner, RunStatus, SLA } from './models/dataset';
 import { SlaConfig } from './models/sla-config'; // ⭐ AJOUT
+import { environment } from '../../environments/environment';
 
 /* ---------- Types BACKEND (Spring) ---------- */
 interface BackendDatasetDto {
@@ -133,7 +134,7 @@ export interface BulkImportResult {
 /* ========================= Service ========================= */
 @Injectable({ providedIn: 'root' })
 export class DatasetService {
-  private readonly baseUrl = 'http://localhost:8083/api/catalog/datasets';
+  private readonly baseUrl = `${environment.apiBaseUrl}/catalog/datasets`;
 
   constructor(private http: HttpClient) {}
 
@@ -396,7 +397,7 @@ export class DatasetService {
 
   /* ======= Bulk import ======= */
   bulkImport(payload: BulkImportPayload): Observable<BulkImportResult> {
-    return this.http.post<BulkImportResult>('http://localhost:8083/api/catalog/bulk', payload);
+    return this.http.post<BulkImportResult>(`${environment.apiBaseUrl}/catalog/bulk`, payload);
   }
 
   // ============================================================
@@ -405,13 +406,13 @@ export class DatasetService {
 
   getSlaConfig(datasetId: string): Observable<SlaConfig> {
     return this.http.get<SlaConfig>(
-      `http://localhost:8083/api/catalog/datasets/${datasetId}/sla-config`
+      `${environment.apiBaseUrl}/catalog/datasets/${datasetId}/sla-config`
     );
   }
 
   updateSlaConfig(datasetId: string, cfg: SlaConfig): Observable<SlaConfig> {
     return this.http.put<SlaConfig>(
-      `http://localhost:8083/api/catalog/datasets/${datasetId}/sla-config`,
+      `${environment.apiBaseUrl}/catalog/datasets/${datasetId}/sla-config`,
       cfg
     );
   }
