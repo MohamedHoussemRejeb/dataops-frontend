@@ -7,8 +7,10 @@ export const environment = {
   useMock: false, // on garde si c’est utilisé ailleurs
 
   // 🔐 KEYCLOAK LOCAL
-  keycloakBaseUrl: 'http://localhost:8181',
+  // 🔐 KEYCLOAK AZURE
+  keycloakBaseUrl:
+    'https://keycloak01-cyepgyeje2hadygd.canadacentral-01.azurewebsites.net',
   keycloakTokenUrl:
-    'http://localhost:8181/realms/dataops/protocol/openid-connect/token',
+    'https://keycloak01-cyepgyeje2hadygd.canadacentral-01.azurewebsites.net/realms/dataops/protocol/openid-connect/token',
   keycloakClientId: 'dataops-angular',
 };
