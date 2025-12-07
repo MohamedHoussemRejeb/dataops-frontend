@@ -1,4 +1,3 @@
-// src/app/app.config.ts
 import { ApplicationConfig, APP_INITIALIZER, importProvidersFrom } from '@angular/core';
 import {
   provideRouter,
@@ -16,14 +15,14 @@ import { routes } from './app.routes';
 
 import { provideNativeDateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
 
-// ✅ HTTP
+// ✅ HTTP (nouvelle API Angular)
 import {
   provideHttpClient,
   withFetch,
   withInterceptors,
 } from '@angular/common/http';
 
-// ✅ Interceptor fonctionnel Keycloak
+// ✅ Interceptor Keycloak / Bearer token
 import { authTokenInterceptor } from './core/auth-token.interceptor';
 
 // ✅ Keycloak
@@ -32,7 +31,7 @@ import { initializeKeycloak } from './keycloak-init';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    // --- Router ---
+    // --------------------- ROUTER ---------------------
     provideRouter(
       routes,
       withRouterConfig({ onSameUrlNavigation: 'reload' }),
@@ -44,24 +43,24 @@ export const appConfig: ApplicationConfig = {
       withViewTransitions()
     ),
 
-    // --- CoreUI modules ---
+    // --------------------- COREUI MODULES ---------------------
     importProvidersFrom(SidebarModule, DropdownModule),
     IconSetService,
 
-    // --- Animations ---
+    // --------------------- ANIMATIONS ---------------------
     provideAnimationsAsync(),
 
-    // --- Material date adapter & locale ---
+    // --------------------- MATERIAL LOCALE ---------------------
     provideNativeDateAdapter(),
     { provide: MAT_DATE_LOCALE, useValue: 'fr-FR' },
 
-    // --- HTTP + interceptor Bearer ---
+    // --------------------- HTTP + INTERCEPTORS ---------------------
     provideHttpClient(
-      withFetch(),
-      withInterceptors([authTokenInterceptor])
+      withInterceptors([authTokenInterceptor]), // 🔥 Interceptor d'abord
+      withFetch()                               // ensuite Fetch API
     ),
 
-    // --- Keycloak integration ---
+    // --------------------- KEYCLOAK ---------------------
     importProvidersFrom(KeycloakAngularModule),
     KeycloakService,
     {
